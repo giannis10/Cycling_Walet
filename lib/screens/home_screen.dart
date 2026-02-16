@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:screen_brightness/screen_brightness.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/document.dart';
 import '../services/storage_service.dart';
@@ -19,6 +21,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final StorageService _storage = StorageService();
   final ImagePicker _picker = ImagePicker();
+  final Uri _devLink = Uri.parse('https://linktr.ee/Giannis.Tsimpouris');
   List<UserDocument> _documents = <UserDocument>[];
   bool _isLoading = true;
 
@@ -30,8 +33,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _load() async {
     final docs = await _storage.loadDocuments();
+    final syncedDocs = await _storage.ensureImagesInAppDirectory(docs);
+    if (!mounted) return;
     setState(() {
-      _documents = docs;
+      _documents = syncedDocs;
       _isLoading = false;
     });
   }
@@ -40,8 +45,26 @@ class _HomeScreenState extends State<HomeScreen> {
     await _storage.saveDocuments(_documents);
   }
 
-  Future<void> _pickAndSetImage(UserDocument document,
-      {required bool second}) async {
+  Future<void> _openDevLink() async {
+    final ok = await launchUrl(
+      _devLink,
+      mode: LaunchMode.platformDefault,
+      webOnlyWindowName: '_blank',
+    );
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Δεν ήταν δυνατό το άνοιγμα του συνδέσμου.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _pickAndSetImage(int index, {required bool second}) async {
+    if (index < 0 || index >= _documents.length) {
+      return;
+    }
+    final document = _documents[index];
     final ImageSource? source = await _showSourcePicker();
     if (source == null) return;
 
@@ -53,13 +76,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     if (picked == null) return;
 
+    final String? previousPath =
+        second ? document.imagePath2 : document.imagePath1;
+    String storedPath;
+    try {
+      storedPath = await _storage.persistImage(
+        sourcePath: picked.path,
+        storageKey: _storage.storageKeyForIndex(index),
+        slot: second ? '2' : '1',
+        previousPath: previousPath,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Αποτυχία αποθήκευσης της φωτογραφίας.'),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
     setState(() {
-      _documents = _documents.map((d) {
-        if (d.id != document.id) return d;
-        return second
-            ? d.copyWith(imagePath2: picked.path)
-            : d.copyWith(imagePath1: picked.path);
-      }).toList();
+      final updated = second
+          ? document.copyWith(imagePath2: storedPath)
+          : document.copyWith(imagePath1: storedPath);
+      _documents = List<UserDocument>.from(_documents);
+      _documents[index] = updated;
     });
     await _save();
   }
@@ -110,10 +153,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Wallet'),
+        title: const Text('Cycling Wallet'),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: TextButton(
+              onPressed: _openDevLink,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                textStyle:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              child: const Text('Dev G.T'),
+            ),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.white))
@@ -131,8 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   return DocumentCard(
                     document: doc,
                     onTap: () => _openDocument(doc),
-                    onEdit1: () => _pickAndSetImage(doc, second: false),
-                    onEdit2: () => _pickAndSetImage(doc, second: true),
+                    onEdit1: () => _pickAndSetImage(index, second: false),
+                    onEdit2: () => _pickAndSetImage(index, second: true),
                   );
                 },
               ),
@@ -174,8 +231,14 @@ class _FullScreenPhoto extends StatelessWidget {
                 itemCount: paths.length,
                 itemBuilder: (context, index) {
                   final p = paths[index];
+                  late final ImageProvider provider;
+                  if (kIsWeb) {
+                    provider = NetworkImage(p);
+                  } else {
+                    provider = FileImage(File(p));
+                  }
                   return PhotoView(
-                    imageProvider: FileImage(File(p)),
+                    imageProvider: provider,
                     minScale: PhotoViewComputedScale.contained,
                     maxScale: PhotoViewComputedScale.covered * 2.5,
                     backgroundDecoration:
@@ -207,6 +270,7 @@ class _BrightnessScopeState extends State<_BrightnessScope> {
   }
 
   Future<void> _boostBrightness() async {
+    if (kIsWeb) return;
     try {
       _previousBrightness = await ScreenBrightness().current;
       await ScreenBrightness().setScreenBrightness(1.0);
@@ -220,6 +284,7 @@ class _BrightnessScopeState extends State<_BrightnessScope> {
   }
 
   Future<void> _restoreBrightness() async {
+    if (kIsWeb) return;
     try {
       if (_previousBrightness != null) {
         await ScreenBrightness().setScreenBrightness(_previousBrightness!);

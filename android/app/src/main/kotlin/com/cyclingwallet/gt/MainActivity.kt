@@ -1,4 +1,4 @@
-package gt.dev.cyclingwallet
+package com.cyclingwallet.gt
 
 import io.flutter.embedding.android.FlutterActivity
 

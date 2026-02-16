@@ -58,7 +58,7 @@ class DocumentCard extends StatelessWidget {
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      Colors.black.withOpacity(0.6),
+                      Colors.black.withValues(alpha: 0.6),
                       Colors.transparent,
                     ],
                   ),
@@ -90,7 +90,7 @@ class DocumentCard extends StatelessWidget {
                     child: IconButton(
                       onPressed: onEdit1,
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.9),
+                        backgroundColor: Colors.white.withValues(alpha: 0.9),
                       ),
                       icon: const Icon(Icons.filter_1, color: Colors.black87),
                     ),
@@ -101,7 +101,7 @@ class DocumentCard extends StatelessWidget {
                     child: IconButton(
                       onPressed: onEdit2,
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.9),
+                        backgroundColor: Colors.white.withValues(alpha: 0.9),
                       ),
                       icon: const Icon(Icons.filter_2, color: Colors.black87),
                     ),
@@ -118,8 +118,9 @@ class DocumentCard extends StatelessWidget {
   String _iconAssetFor(String title) {
     final lower = title.toLowerCase();
     if (lower.contains('uci')) return 'assets/icons/uci.png';
-    if (lower.contains('εοπ') || lower.contains('eop'))
+    if (lower.contains('εοπ') || lower.contains('eop')) {
       return 'assets/icons/eop.png';
+    }
     if (lower.contains('υγε') ||
         lower.contains('health') ||
         lower.contains('karta')) {

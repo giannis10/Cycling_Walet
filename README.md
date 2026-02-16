@@ -1,79 +1,72 @@
-# Cycling Races - Document Viewer
+# Cycling Wallet
 
-Μια Flutter εφαρμογή για Android/iOS που επιτρέπει την αποθήκευση και προβολή φωτογραφιών εγγράφων (UCI, ΕΟΠ, κάρτα υγείας) με zoom & pan λειτουργικότητα.
+Μια Flutter εφαρμογή για γρήγορη αποθήκευση και προβολή αγωνιστικών εγγράφων
+ποδηλασίας (UCI, ΕΟΠ, κάρτα υγείας) με ασφαλή, offline πρόσβαση.
+
+## Για ποιον είναι
+
+- Αθλητές/συνοδοί που χρειάζονται άμεση επίδειξη εγγράφων σε αγώνα
+- Χρήστες που θέλουν όλα τα έγγραφα οργανωμένα στο κινητό χωρίς cloud
 
 ## Χαρακτηριστικά
 
-- ✅ **Αυτόματη αποθήκευση**: Η τελευταία επιλεγμένη φωτογραφία αποθηκεύεται αυτόματα
-- ✅ **Zoom & Pan**: Πλήρης λειτουργικότητα zoom και pan με το `photo_view` πακέτο
-- ✅ **Επιλογή πηγής**: Επιλογή φωτογραφίας από gallery ή κάμερα
-- ✅ **Indicator**: Εμφάνιση κατάστασης (αν υπάρχει αποθηκευμένο έγγραφο)
-- ✅ **Modern UI**: Όμορφο και μοντέρνο interface
-- ✅ **Offline**: Δεν απαιτείται internet connection
+- Κάρτες εγγράφων με 1–2 φωτογραφίες ανά έγγραφο
+- Fullscreen προβολή με zoom & pan
+- Επιλογή από κάμερα ή συλλογή
+- Αυτόματη αποθήκευση και offline λειτουργία
+- Προσωρινή ενίσχυση φωτεινότητας κατά την προβολή
 
-## Εγκατάσταση
+## Αποθήκευση & ιδιωτικότητα
 
-1. Βεβαιωθείτε ότι έχετε εγκαταστήσει το Flutter SDK
-2. Κλωνοποιήστε το repository
-3. Εκτελέστε:
-   ```bash
-   flutter pub get
-   ```
+- Οι φωτογραφίες αντιγράφονται σε ιδιωτικό χώρο της εφαρμογής
+  (Application Documents / `app_flutter`) και δεν εξαρτώνται από το album.
+- Αν διαγραφεί μια φωτογραφία από τη συλλογή, η εφαρμογή κρατά το δικό της αντίγραφο.
+- Δεν γίνεται αποστολή δεδομένων σε server ή cloud.
 
-## Εκτέλεση
+## Τεχνικές λεπτομέρειες
 
-### Android
-```bash
-flutter run
-```
+- Flutter (Android/iOS)
+- Τοπικό metadata σε `shared_preferences`
+- Αρχεία εικόνας σε app-specific directory μέσω `path_provider`
+- Προβολή εικόνας με `photo_view`, επιλογή με `image_picker`
 
-### iOS
-```bash
-flutter run
-```
-
-## Χρήση
-
-1. **Πρώτη χρήση**: Πατήστε το κουμπί "Αλλαγή" για να προσθέσετε φωτογραφία
-2. **Επιλογή πηγής**: Επιλέξτε μεταξύ κάμερας ή gallery
-3. **Προβολή**: Η φωτογραφία εμφανίζεται σε fullscreen με zoom & pan
-4. **Αποθήκευση**: Η φωτογραφία αποθηκεύεται αυτόματα και θα φορτώνει την επόμενη φορά
-
-## Δομή Project
+## Δομή project
 
 ```
 lib/
-  └── main.dart          # Κύριο αρχείο εφαρμογής
-android/
-  └── app/src/main/
-      └── AndroidManifest.xml  # Android permissions
-ios/
-  └── Runner/
-      └── Info.plist     # iOS permissions
-pubspec.yaml             # Dependencies
+  main.dart
+  models/document.dart
+  screens/home_screen.dart
+  services/storage_service.dart
+  widgets/document_card.dart
 ```
 
-## Dependencies
+## Εγκατάσταση
 
-- `shared_preferences`: Για αποθήκευση της διαδρομής της φωτογραφίας
-- `image_picker`: Για επιλογή φωτογραφίας από gallery/camera
-- `photo_view`: Για zoom & pan λειτουργικότητα
+1. Εγκατάσταση Flutter SDK
+2. `flutter pub get`
+
+## Έτοιμα builds
+
+Για εγκατάσταση σε Android ή iPhone, υπάρχουν έτοιμες εκδόσεις στα GitHub Releases.
+
+## Εκτέλεση
+
+- `flutter run`
 
 ## Permissions
 
 ### Android
-- `CAMERA`: Για λήψη φωτογραφίας
-- `READ_EXTERNAL_STORAGE`: Για πρόσβαση στη gallery
-- `WRITE_EXTERNAL_STORAGE`: Για αποθήκευση φωτογραφιών
+- `CAMERA`
+- `READ_EXTERNAL_STORAGE`
+- `WRITE_EXTERNAL_STORAGE` (ανάλογα με έκδοση Android)
 
 ### iOS
-- `NSCameraUsageDescription`: Για πρόσβαση στην κάμερα
-- `NSPhotoLibraryUsageDescription`: Για πρόσβαση στη φωτογραφική βιβλιοθήκη
-- `NSPhotoLibraryAddUsageDescription`: Για αποθήκευση φωτογραφιών
+- `NSCameraUsageDescription`
+- `NSPhotoLibraryUsageDescription`
+- `NSPhotoLibraryAddUsageDescription`
 
 ## Σημειώσεις
 
-- Η εφαρμογή αποθηκεύει μόνο τη διαδρομή της φωτογραφίας, όχι την ίδια την εικόνα
-- Η φωτογραφία πρέπει να παραμείνει στη συσκευή για να είναι διαθέσιμη
-- Υποστηρίζει όλες τις κατευθύνσεις οθόνης
-- Εξαιρετική για την προβολή εγγράφων όπως UCI, ΕΟΠ, κάρτες υγείας 
+- Τα δεδομένα αποθηκεύονται τοπικά και διαγράφονται με απεγκατάσταση.
+- Αν αλλάξει φωτογραφία, αντικαθίσταται το αντίγραφο στο app directory.

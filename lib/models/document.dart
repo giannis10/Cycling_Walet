@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 /// Represents a user document stored as a card (e.g., UCI License),
 /// supporting up to two images.
@@ -68,4 +69,9 @@ class UserDocument {
       UserDocument.fromMap(json.decode(source) as Map<String, dynamic>);
 }
 
-String generateDocumentId() => DateTime.now().microsecondsSinceEpoch.toString();
+final Random _idRandom = Random();
+const int _idRandMax = 1000000000;
+
+String generateDocumentId() {
+  return '${DateTime.now().microsecondsSinceEpoch}_${_idRandom.nextInt(_idRandMax)}';
+}
