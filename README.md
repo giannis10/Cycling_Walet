@@ -1,72 +1,110 @@
-# Cycling Wallet
+# 🚴 Cycling Wallet
 
-Μια Flutter εφαρμογή για γρήγορη αποθήκευση και προβολή αγωνιστικών εγγράφων
-ποδηλασίας (UCI, ΕΟΠ, κάρτα υγείας) με ασφαλή, offline πρόσβαση.
+> **Όλα τα αγωνιστικά σου έγγραφα — στη μύτη των δακτύλων σου.**
 
-## Για ποιον είναι
+Μια Flutter εφαρμογή για γρήγορη αποθήκευση και επίδειξη αγωνιστικών εγγράφων ποδηλασίας (UCI, ΕΟΠ, κάρτα υγείας) — με ασφαλή, 100% offline πρόσβαση.
 
-- Αθλητές/συνοδοί που χρειάζονται άμεση επίδειξη εγγράφων σε αγώνα
-- Χρήστες που θέλουν όλα τα έγγραφα οργανωμένα στο κινητό χωρίς cloud
+---
 
-## Χαρακτηριστικά
+## 🎯 Για ποιον είναι
 
-- Κάρτες εγγράφων με 1–2 φωτογραφίες ανά έγγραφο
-- Fullscreen προβολή με zoom & pan
-- Επιλογή από κάμερα ή συλλογή
-- Αυτόματη αποθήκευση και offline λειτουργία
-- Προσωρινή ενίσχυση φωτεινότητας κατά την προβολή
+| 👤 Αθλητής / Συνοδός | 🔒 Privacy-first χρήστης |
+|---|---|
+| Άμεση επίδειξη εγγράφων στον έλεγχο αγώνα | Όλα τα έγγραφα στο κινητό, χωρίς cloud |
 
-## Αποθήκευση & ιδιωτικότητα
+---
 
-- Οι φωτογραφίες αντιγράφονται σε ιδιωτικό χώρο της εφαρμογής
-  (Application Documents / `app_flutter`) και δεν εξαρτώνται από το album.
-- Αν διαγραφεί μια φωτογραφία από τη συλλογή, η εφαρμογή κρατά το δικό της αντίγραφο.
-- Δεν γίνεται αποστολή δεδομένων σε server ή cloud.
+## ✨ Χαρακτηριστικά
 
-## Τεχνικές λεπτομέρειες
+- 🪪 **Κάρτες εγγράφων** με 1–2 φωτογραφίες ανά έγγραφο
+- 🔍 **Fullscreen προβολή** με zoom & pan
+- 📷 **Επιλογή** από κάμερα ή συλλογή
+- 💾 **Αυτόματη αποθήκευση** και offline λειτουργία
+- ☀️ **Προσωρινή ενίσχυση φωτεινότητας** κατά την προβολή
 
-- Flutter (Android/iOS)
-- Τοπικό metadata σε `shared_preferences`
-- Αρχεία εικόνας σε app-specific directory μέσω `path_provider`
-- Προβολή εικόνας με `photo_view`, επιλογή με `image_picker`
+---
 
-## Δομή project
+## 🔐 Αποθήκευση & Ιδιωτικότητα
+
+- Οι φωτογραφίες αντιγράφονται σε **ιδιωτικό χώρο** της εφαρμογής (`Application Documents / app_flutter`) και δεν εξαρτώνται από το album.
+- Αν διαγραφεί μια φωτογραφία από τη συλλογή, η εφαρμογή **κρατά το δικό της αντίγραφο**.
+- ❌ Δεν γίνεται αποστολή δεδομένων σε server ή cloud.
+
+---
+
+## 🛠️ Τεχνικές λεπτομέρειες
+
+| Στοιχείο | Τεχνολογία |
+|---|---|
+| Framework | Flutter (Android / iOS) |
+| Metadata | `shared_preferences` |
+| Αρχεία εικόνας | `path_provider` (app-specific directory) |
+| Προβολή εικόνας | `photo_view` |
+| Επιλογή φωτογραφίας | `image_picker` |
+
+---
+
+## 📁 Δομή Project
 
 ```
 lib/
-  main.dart
-  models/document.dart
-  screens/home_screen.dart
-  services/storage_service.dart
-  widgets/document_card.dart
+├── main.dart
+├── models/
+│   └── document.dart
+├── screens/
+│   └── home_screen.dart
+├── services/
+│   └── storage_service.dart
+└── widgets/
+    └── document_card.dart
 ```
 
-## Εγκατάσταση
+---
 
-1. Εγκατάσταση Flutter SDK
-2. `flutter pub get`
+## 🚀 Εγκατάσταση & Εκτέλεση
 
-## Έτοιμα builds
+```bash
+# 1. Εγκατάσταση Flutter SDK
+# https://docs.flutter.dev/get-started/install
 
-Για εγκατάσταση σε Android ή iPhone, υπάρχουν έτοιμες εκδόσεις στα GitHub Releases.
+# 2. Λήψη dependencies
+flutter pub get
 
-## Εκτέλεση
+# 3. Εκτέλεση
+flutter run
+```
 
-- `flutter run`
+### 📦 Έτοιμα Builds
 
-## Permissions
+Για εγκατάσταση σε Android ή iPhone, υπάρχουν έτοιμες εκδόσεις στα **[GitHub Releases](../../releases)** — δεν απαιτείται Flutter SDK.
 
-### Android
-- `CAMERA`
-- `READ_EXTERNAL_STORAGE`
-- `WRITE_EXTERNAL_STORAGE` (ανάλογα με έκδοση Android)
+---
 
-### iOS
-- `NSCameraUsageDescription`
-- `NSPhotoLibraryUsageDescription`
-- `NSPhotoLibraryAddUsageDescription`
+## 📋 Permissions
 
-## Σημειώσεις
+<details>
+<summary><strong>Android</strong></summary>
 
-- Τα δεδομένα αποθηκεύονται τοπικά και διαγράφονται με απεγκατάσταση.
-- Αν αλλάξει φωτογραφία, αντικαθίσταται το αντίγραφο στο app directory.
+```xml
+CAMERA
+READ_EXTERNAL_STORAGE
+WRITE_EXTERNAL_STORAGE  <!-- ανάλογα με έκδοση Android -->
+```
+</details>
+
+<details>
+<summary><strong>iOS</strong></summary>
+
+```
+NSCameraUsageDescription
+NSPhotoLibraryUsageDescription
+NSPhotoLibraryAddUsageDescription
+```
+</details>
+
+---
+
+## 📝 Σημειώσεις
+
+- Τα δεδομένα αποθηκεύονται **τοπικά** και διαγράφονται με απεγκατάσταση.
+- Αν αλλάξει φωτογραφία, αντικαθίσταται αυτόματα το αντίγραφο στο app directory.
