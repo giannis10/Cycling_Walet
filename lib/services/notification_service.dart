@@ -13,6 +13,7 @@ class NotificationService {
 
   static final NotificationService instance = NotificationService._();
   static const String _enabledKey = 'notifications_enabled';
+  static const String _reminderDaysKey = 'reminder_days_before_expiry';
 
   static const String _channelId = 'reminders';
   static const String _channelName = 'Υπενθυμίσεις';
@@ -21,10 +22,12 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   bool _enabled = true;
+  int _reminderDays = 10;
 
   Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
     _enabled = prefs.getBool(_enabledKey) ?? true;
+    _reminderDays = prefs.getInt(_reminderDaysKey) ?? 10;
     if (kIsWeb) {
       return;
     }
@@ -162,6 +165,7 @@ class NotificationService {
   }
 
   bool get enabled => _enabled;
+  int get reminderDays => _reminderDays;
 
   Future<bool> setEnabled(bool value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -205,6 +209,12 @@ class NotificationService {
       await _plugin.cancelAll();
     }
     return granted;
+  }
+
+  Future<void> setReminderDays(int days) async {
+    _reminderDays = days;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_reminderDaysKey, days);
   }
 
   Future<void> _createChannel() async {

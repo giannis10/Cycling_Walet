@@ -29,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   int _selectedIndex = 0;
   bool _notificationsEnabled = NotificationService.instance.enabled;
+  int _reminderDays = NotificationService.instance.reminderDays;
   Timer? _webReminderTimer;
 
   @override
@@ -51,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _documents = syncedDocs;
       _isLoading = false;
       _notificationsEnabled = NotificationService.instance.enabled;
+      _reminderDays = NotificationService.instance.reminderDays;
     });
     await _syncReminders(syncedDocs);
     if (kIsWeb) {
@@ -77,12 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
         await NotificationService.instance.cancelNotification(notificationId);
         continue;
       }
+      final reminderDate = expiry.subtract(Duration(days: _reminderDays));
       await NotificationService.instance.cancelNotification(notificationId);
       await NotificationService.instance.scheduleExpiryNotification(
         id: notificationId,
-        date: expiry,
+        date: reminderDate,
         title: 'Cycling Wallet',
-        body: 'Το έγγραφο ${docs[i].title} λήγει σήμερα.',
+        body: 'Το έγγραφο ${docs[i].title} λήγει σε $_reminderDays ημέρες.',
       );
     }
   }
@@ -108,7 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final expiry = doc.expiresAt;
       if (expiry == null) continue;
 
-      final dueAt = DateTime(expiry.year, expiry.month, expiry.day, 9);
+      final reminderDate = expiry.subtract(Duration(days: _reminderDays));
+      final dueAt =
+          DateTime(reminderDate.year, reminderDate.month, reminderDate.day, 9);
       if (now.isBefore(dueAt)) continue;
 
       final lastNotified = doc.lastNotifiedAt;
@@ -118,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final ok = await NotificationService.instance.showImmediateNotification(
         title: 'Cycling Wallet',
-        body: 'Το έγγραφο ${doc.title} έληξε.',
+        body: 'Το έγγραφο ${doc.title} λήγει σε $_reminderDays ημέρες.',
       );
       if (!ok) continue;
 
@@ -190,6 +195,18 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _setReminderDays(int days) async {
+    await NotificationService.instance.setReminderDays(days);
+    if (!mounted) return;
+    setState(() => _reminderDays = days);
+    await _syncReminders(_documents);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Οι υπενθυμίσεις θα έρχονται $_reminderDays μέρες πριν.'),
+      ),
+    );
   }
 
   Future<void> _addToCalendar(int index) async {
@@ -431,6 +448,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _SettingsPage(
             onToggleNotifications: _toggleNotifications,
             notificationsEnabled: _notificationsEnabled,
+            reminderDays: _reminderDays,
+            onReminderDaysChanged: _setReminderDays,
           ),
         ],
       ),
@@ -661,10 +680,14 @@ class _SettingsPage extends StatelessWidget {
   const _SettingsPage({
     required this.onToggleNotifications,
     required this.notificationsEnabled,
+    required this.reminderDays,
+    required this.onReminderDaysChanged,
   });
 
   final ValueChanged<bool> onToggleNotifications;
   final bool notificationsEnabled;
+  final int reminderDays;
+  final ValueChanged<int> onReminderDaysChanged;
   static const String _licenseUrl =
       'https://github.com/giannis10/Cycling_Walet/blob/master/LICENSE';
   static const String _readmeUrl =
@@ -695,6 +718,16 @@ class _SettingsPage extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _SettingsTile(
+          icon: Icons.calendar_month_rounded,
+          title: 'Μέρες υπενθύμισης',
+          subtitle: 'Πόσες μέρες πριν τη λήξη θα έρχεται ειδοποίηση.',
+          trailing: OutlinedButton(
+            onPressed: () => _showReminderDaysDialog(context),
+            child: Text('$reminderDays'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _SettingsTile(
           icon: Icons.privacy_tip_rounded,
           title: 'Απόρρητο',
           subtitle: 'Άνοιγμα άδειας χρήσης.',
@@ -715,6 +748,47 @@ class _SettingsPage extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _showReminderDaysDialog(BuildContext context) async {
+    final controller = TextEditingController(text: reminderDays.toString());
+    final result = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Μέρες υπενθύμισης'),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Ημέρες πριν τη λήξη',
+              hintText: 'π.χ. 10',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Άκυρο'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final value = int.tryParse(controller.text.trim());
+                if (value == null || value < 1) {
+                  return;
+                }
+                Navigator.of(dialogContext).pop(value);
+              },
+              child: const Text('Αποθήκευση'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null) {
+      onReminderDaysChanged(result);
+    }
   }
 }
 

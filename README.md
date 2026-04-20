@@ -1,110 +1,75 @@
 # 🚴 Cycling Wallet
 
-> **Όλα τα αγωνιστικά σου έγγραφα — στη μύτη των δακτύλων σου.**
+> **Ο προσωπικός σου ψηφιακός φάκελος αγωνιστικών εγγράφων.**
 
-Μια Flutter εφαρμογή για γρήγορη αποθήκευση και επίδειξη αγωνιστικών εγγράφων ποδηλασίας (UCI, ΕΟΠ, κάρτα υγείας) — με ασφαλή, 100% offline πρόσβαση.
+Το **Cycling Wallet** σε βοηθά να κρατάς όλα τα βασικά αγωνιστικά έγγραφα
+ποδηλασίας σε ένα σημείο, οργανωμένα, ασφαλή και έτοιμα για άμεση επίδειξη.
 
 ---
 
 ## 🎯 Για ποιον είναι
 
-| 👤 Αθλητής / Συνοδός | 🔒 Privacy-first χρήστης |
-|---|---|
-| Άμεση επίδειξη εγγράφων στον έλεγχο αγώνα | Όλα τα έγγραφα στο κινητό, χωρίς cloud |
+- Για αθλητές ποδηλασίας που θέλουν τα έγγραφα πάντα διαθέσιμα.
+- Για συνοδούς που πρέπει να δείχνουν γρήγορα στοιχεία σε ελέγχους.
+- Για χρήστες που προτιμούν ιδιωτικότητα και αποθήκευση μόνο στη συσκευή.
 
 ---
 
-## ✨ Χαρακτηριστικά
+## ✨ Τι μπορείς να κάνεις
 
-- 🪪 **Κάρτες εγγράφων** με 1–2 φωτογραφίες ανά έγγραφο
-- 🔍 **Fullscreen προβολή** με zoom & pan
-- 📷 **Επιλογή** από κάμερα ή συλλογή
-- 💾 **Αυτόματη αποθήκευση** και offline λειτουργία
-- ☀️ **Προσωρινή ενίσχυση φωτεινότητας** κατά την προβολή
-
----
-
-## 🔐 Αποθήκευση & Ιδιωτικότητα
-
-- Οι φωτογραφίες αντιγράφονται σε **ιδιωτικό χώρο** της εφαρμογής (`Application Documents / app_flutter`) και δεν εξαρτώνται από το album.
-- Αν διαγραφεί μια φωτογραφία από τη συλλογή, η εφαρμογή **κρατά το δικό της αντίγραφο**.
-- ❌ Δεν γίνεται αποστολή δεδομένων σε server ή cloud.
+- Αποθηκεύεις μέχρι **2 φωτογραφίες ανά έγγραφο** (μπρος/πίσω).
+- Βγάζεις φωτογραφία από κάμερα ή επιλέγεις από συλλογή.
+- Βλέπεις τα έγγραφα σε πλήρη οθόνη με εύκολο zoom.
+- Οργανώνεις τα πάντα σε καθαρές, ξεχωριστές κάρτες.
+- Έχεις κάτω μενού: **Έγγραφα / Υπενθυμίσεις / Ρυθμίσεις**.
 
 ---
 
-## 🛠️ Τεχνικές λεπτομέρειες
+## ⏰ Υπενθυμίσεις λήξης
 
-| Στοιχείο | Τεχνολογία |
-|---|---|
-| Framework | Flutter (Android / iOS) |
-| Metadata | `shared_preferences` |
-| Αρχεία εικόνας | `path_provider` (app-specific directory) |
-| Προβολή εικόνας | `photo_view` |
-| Επιλογή φωτογραφίας | `image_picker` |
+- Ορίζεις ημερομηνία λήξης για κάθε έγγραφο.
+- Η προεπιλογή είναι ειδοποίηση **10 μέρες πριν τη λήξη** (09:00).
+- Από τις Ρυθμίσεις ο χρήστης μπορεί να αλλάξει πόσες μέρες πριν θέλει ειδοποίηση.
+- Προσθέτεις υπενθύμιση και στο ημερολόγιο της συσκευής.
+- Οι ειδοποιήσεις ανοίγουν/κλείνουν από τις Ρυθμίσεις της εφαρμογής.
 
 ---
 
-## 📁 Δομή Project
+## 🔐 Ασφάλεια & ιδιωτικότητα
 
-```
-lib/
-├── main.dart
-├── models/
-│   └── document.dart
-├── screens/
-│   └── home_screen.dart
-├── services/
-│   └── storage_service.dart
-└── widgets/
-    └── document_card.dart
-```
+- Οι φωτογραφίες αποθηκεύονται στον **ιδιωτικό χώρο** της εφαρμογής μέσα στη συσκευή.
+- Δεν εξαρτώνται από το album του κινητού.
+- Αν σβηστεί μια εικόνα από τη συλλογή, η εφαρμογή κρατά το δικό της αντίγραφο.
+- Δεν γίνεται αποστολή δεδομένων σε cloud ή εξωτερικό server.
 
 ---
 
-## 🚀 Εγκατάσταση & Εκτέλεση
+## 📱 Κατέβασμα εφαρμογής
 
-```bash
-# 1. Εγκατάσταση Flutter SDK
-# https://docs.flutter.dev/get-started/install
+[![Android](https://img.shields.io/badge/Android-Download%20APK-3DDC84?logo=android&logoColor=white)](https://github.com/giannis10/Cycling_Walet/releases)
+[![iPhone / PWA](https://img.shields.io/badge/iPhone-Open%20PWA-0A84FF?logo=apple&logoColor=white)](https://giannis10.github.io/Cycling_Walet/)
+[![Web / PWA](https://img.shields.io/badge/Web-Open%20PWA-1F6FEB?logo=googlechrome&logoColor=white)](https://giannis10.github.io/Cycling_Walet/)
 
-# 2. Λήψη dependencies
-flutter pub get
-
-# 3. Εκτέλεση
-flutter run
-```
-
-### 📦 Έτοιμα Builds
-
-Για εγκατάσταση σε Android ή iPhone, υπάρχουν έτοιμες εκδόσεις στα **[GitHub Releases](../../releases)** — δεν απαιτείται Flutter SDK.
+- Πάτα **Android** για τα GitHub Releases (APK).
+- Πάτα **iPhone / PWA** ή **Web / PWA** για άνοιγμα της online έκδοσης.
 
 ---
 
-## 📋 Permissions
+## 🔗 Χρήσιμοι σύνδεσμοι
 
-<details>
-<summary><strong>Android</strong></summary>
-
-```xml
-CAMERA
-READ_EXTERNAL_STORAGE
-WRITE_EXTERNAL_STORAGE  <!-- ανάλογα με έκδοση Android -->
-```
-</details>
-
-<details>
-<summary><strong>iOS</strong></summary>
-
-```
-NSCameraUsageDescription
-NSPhotoLibraryUsageDescription
-NSPhotoLibraryAddUsageDescription
-```
-</details>
+- **GitHub Repository:** [https://github.com/giannis10/Cycling_Walet](https://github.com/giannis10/Cycling_Walet)
+- **License:** [https://github.com/giannis10/Cycling_Walet/blob/master/LICENSE](https://github.com/giannis10/Cycling_Walet/blob/master/LICENSE)
 
 ---
 
-## 📝 Σημειώσεις
+## 📜 Άδεια χρήσης
 
-- Τα δεδομένα αποθηκεύονται **τοπικά** και διαγράφονται με απεγκατάσταση.
-- Αν αλλάξει φωτογραφία, αντικαθίσταται αυτόματα το αντίγραφο στο app directory.
+Η εφαρμογή διατίθεται με άδεια **Personal Use**.  
+Δες αναλυτικά τους όρους στο αρχείο `LICENSE` ή εδώ:  
+[https://github.com/giannis10/Cycling_Walet/blob/master/LICENSE](https://github.com/giannis10/Cycling_Walet/blob/master/LICENSE)
+
+---
+
+## 📝 Σημαντική σημείωση
+
+Αν γίνει απεγκατάσταση της εφαρμογής ή “Clear Data/Storage”, τα τοπικά δεδομένα διαγράφονται.
