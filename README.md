@@ -14,59 +14,32 @@
 - Fullscreen προβολή με zoom & pan
 - Επιλογή από κάμερα ή συλλογή
 - Αυτόματη αποθήκευση και offline λειτουργία
-- Προσωρινή ενίσχυση φωτεινότητας κατά την προβολή
+- Υπενθυμίσεις λήξης και ειδοποιήσεις
+- Προσθήκη υπενθύμισης στο Ημερολόγιο (για iPhone/PWA)
+- Εγκατάσταση ως PWA από browser
+
+## Διαθεσιμότητα & links
+
+- **Android (APK)**: [GitHub Releases](https://github.com/giannis10/Cycling_Walet/releases)
+- **iPhone (PWA)**: [https://giannis10.github.io/Cycling_Walet/](https://giannis10.github.io/Cycling_Walet/)
+- **Web (PWA)**: ίδιο link, εγκατάσταση από τον browser
+
+## Υπενθυμίσεις
+
+- Android/iOS: ειδοποίηση στην ημερομηνία λήξης.
+- iPhone PWA: επιλέγεις “Ημερολόγιο” για να δημιουργηθεί υπενθύμιση στο Calendar.
 
 ## Αποθήκευση & ιδιωτικότητα
 
-- Οι φωτογραφίες αντιγράφονται σε ιδιωτικό χώρο της εφαρμογής
-  (Application Documents / `app_flutter`) και δεν εξαρτώνται από το album.
+- Οι φωτογραφίες αποθηκεύονται **τοπικά** στον ιδιωτικό χώρο της εφαρμογής
+  (Application Documents / app_flutter) και δεν εξαρτώνται από το album.
 - Αν διαγραφεί μια φωτογραφία από τη συλλογή, η εφαρμογή κρατά το δικό της αντίγραφο.
 - Δεν γίνεται αποστολή δεδομένων σε server ή cloud.
 
-## Τεχνικές λεπτομέρειες
-
-- Flutter (Android/iOS)
-- Τοπικό metadata σε `shared_preferences`
-- Αρχεία εικόνας σε app-specific directory μέσω `path_provider`
-- Προβολή εικόνας με `photo_view`, επιλογή με `image_picker`
-
-## Δομή project
-
-```
-lib/
-  main.dart
-  models/document.dart
-  screens/home_screen.dart
-  services/storage_service.dart
-  widgets/document_card.dart
-```
-
-## Εγκατάσταση
-
-1. Εγκατάσταση Flutter SDK
-2. `flutter pub get`
-
-## Έτοιμα builds
-
-Για εγκατάσταση σε Android ή iPhone, υπάρχουν έτοιμες εκδόσεις στα GitHub Releases.
-
-## Εκτέλεση
-
-- `flutter run`
-
-## Permissions
-
-### Android
-- `CAMERA`
-- `READ_EXTERNAL_STORAGE`
-- `WRITE_EXTERNAL_STORAGE` (ανάλογα με έκδοση Android)
-
-### iOS
-- `NSCameraUsageDescription`
-- `NSPhotoLibraryUsageDescription`
-- `NSPhotoLibraryAddUsageDescription`
-
 ## Σημειώσεις
 
-- Τα δεδομένα αποθηκεύονται τοπικά και διαγράφονται με απεγκατάσταση.
-- Αν αλλάξει φωτογραφία, αντικαθίσταται το αντίγραφο στο app directory.
+- Η διαγραφή εφαρμογής ή “Clear Data/Storage” σβήνει τα τοπικά δεδομένα.
+
+## Άδεια
+
+Το project διατίθεται με “Personal Use” άδεια. Δες το `LICENSE`.

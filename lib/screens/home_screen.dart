@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -8,6 +9,8 @@ import 'package:screen_brightness/screen_brightness.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/document.dart';
+import '../services/calendar_service.dart';
+import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../widgets/document_card.dart';
 
@@ -24,11 +27,20 @@ class _HomeScreenState extends State<HomeScreen> {
   final Uri _devLink = Uri.parse('https://linktr.ee/Giannis.Tsimpouris');
   List<UserDocument> _documents = <UserDocument>[];
   bool _isLoading = true;
+  int _selectedIndex = 0;
+  bool _notificationsEnabled = NotificationService.instance.enabled;
+  Timer? _webReminderTimer;
 
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _webReminderTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -38,11 +50,175 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _documents = syncedDocs;
       _isLoading = false;
+      _notificationsEnabled = NotificationService.instance.enabled;
     });
+    await _syncReminders(syncedDocs);
+    if (kIsWeb) {
+      _startWebReminderTimer();
+    }
   }
 
   Future<void> _save() async {
     await _storage.saveDocuments(_documents);
+  }
+
+  int _notificationIdForIndex(int index) => 1000 + index;
+
+  Future<void> _syncReminders(List<UserDocument> docs) async {
+    if (kIsWeb) {
+      await _checkDueReminders(docs: docs);
+      return;
+    }
+
+    for (var i = 0; i < docs.length; i++) {
+      final expiry = docs[i].expiresAt;
+      final notificationId = _notificationIdForIndex(i);
+      if (expiry == null) {
+        await NotificationService.instance.cancelNotification(notificationId);
+        continue;
+      }
+      await NotificationService.instance.cancelNotification(notificationId);
+      await NotificationService.instance.scheduleExpiryNotification(
+        id: notificationId,
+        date: expiry,
+        title: 'Cycling Wallet',
+        body: 'Το έγγραφο ${docs[i].title} λήγει σήμερα.',
+      );
+    }
+  }
+
+  void _startWebReminderTimer() {
+    _webReminderTimer?.cancel();
+    _webReminderTimer =
+        Timer.periodic(const Duration(minutes: 15), (_) => _checkDueReminders());
+  }
+
+  Future<void> _checkDueReminders({List<UserDocument>? docs}) async {
+    if (!kIsWeb) {
+      return;
+    }
+
+    final now = DateTime.now();
+    final source = docs ?? _documents;
+    var updated = false;
+    final updatedDocs = List<UserDocument>.from(source);
+
+    for (var i = 0; i < source.length; i++) {
+      final doc = source[i];
+      final expiry = doc.expiresAt;
+      if (expiry == null) continue;
+
+      final dueAt = DateTime(expiry.year, expiry.month, expiry.day, 9);
+      if (now.isBefore(dueAt)) continue;
+
+      final lastNotified = doc.lastNotifiedAt;
+      final alreadyNotified =
+          lastNotified != null && lastNotified.isAfter(dueAt);
+      if (alreadyNotified) continue;
+
+      final ok = await NotificationService.instance.showImmediateNotification(
+        title: 'Cycling Wallet',
+        body: 'Το έγγραφο ${doc.title} έληξε.',
+      );
+      if (!ok) continue;
+
+      updatedDocs[i] = doc.copyWith(lastNotifiedAt: now);
+      updated = true;
+    }
+
+    if (updated && mounted) {
+      setState(() => _documents = updatedDocs);
+      await _save();
+    }
+  }
+
+  Future<void> _setExpiryDate(int index) async {
+    if (index < 0 || index >= _documents.length) {
+      return;
+    }
+    final doc = _documents[index];
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: doc.expiresAt ?? now,
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 10),
+    );
+    if (picked == null) return;
+
+    final updated = doc.copyWith(expiresAt: picked, lastNotifiedAt: null);
+    setState(() {
+      _documents = List<UserDocument>.from(_documents);
+      _documents[index] = updated;
+    });
+    await _save();
+    await _syncReminders(_documents);
+  }
+
+  Future<void> _clearExpiryDate(int index) async {
+    if (index < 0 || index >= _documents.length) {
+      return;
+    }
+    final doc = _documents[index];
+    if (doc.expiresAt == null) return;
+
+    final updated = doc.copyWith(expiresAt: null, lastNotifiedAt: null);
+    setState(() {
+      _documents = List<UserDocument>.from(_documents);
+      _documents[index] = updated;
+    });
+    await _save();
+    await _syncReminders(_documents);
+  }
+
+  void _onNavTap(int index) {
+    if (index == _selectedIndex) return;
+    setState(() => _selectedIndex = index);
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    final enabled = await NotificationService.instance.setEnabled(value);
+    if (enabled) {
+      await _syncReminders(_documents);
+    }
+    if (!mounted) return;
+    setState(() => _notificationsEnabled = enabled);
+    if (value && !enabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Δεν δόθηκε άδεια ειδοποιήσεων.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _addToCalendar(int index) async {
+    if (index < 0 || index >= _documents.length) {
+      return;
+    }
+    final doc = _documents[index];
+    final expiry = doc.expiresAt;
+    if (expiry == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ορίστε πρώτα ημερομηνία λήξης.'),
+        ),
+      );
+      return;
+    }
+
+    final ok = await CalendarService.instance.addExpiryEvent(
+      date: expiry,
+      title: doc.title,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok
+            ? 'Προστέθηκε στο ημερολόγιο.'
+            : 'Αποτυχία προσθήκης στο ημερολόγιο.'),
+      ),
+    );
   }
 
   Future<void> _openDevLink() async {
@@ -52,6 +228,24 @@ class _HomeScreenState extends State<HomeScreen> {
       webOnlyWindowName: '_blank',
     );
     if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Δεν ήταν δυνατό το άνοιγμα του συνδέσμου.'),
+        ),
+      );
+    }
+  }
+
+  static Future<void> openExternalUrl(
+    BuildContext context,
+    String url,
+  ) async {
+    final ok = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.platformDefault,
+      webOnlyWindowName: '_blank',
+    );
+    if (!ok && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Δεν ήταν δυνατό το άνοιγμα του συνδέσμου.'),
@@ -148,6 +342,57 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildDocumentsPage() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: Colors.white));
+    }
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 1,
+          childAspectRatio: 16 / 10,
+          mainAxisSpacing: 12,
+        ),
+        itemCount: _documents.length,
+        itemBuilder: (context, index) {
+          final doc = _documents[index];
+          return DocumentCard(
+            document: doc,
+            onTap: () => _openDocument(doc),
+            onEdit1: () => _pickAndSetImage(index, second: false),
+            onEdit2: () => _pickAndSetImage(index, second: true),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return BottomNavigationBar(
+      currentIndex: _selectedIndex,
+      onTap: _onNavTap,
+      backgroundColor: const Color(0xFF0C0C0C),
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.white70,
+      type: BottomNavigationBarType.fixed,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.folder_rounded),
+          label: 'Έγγραφα',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.notifications_active_rounded),
+          label: 'Υπενθυμίσεις',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.settings_rounded),
+          label: 'Ρυθμίσεις',
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -172,28 +417,23 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.white))
-          : Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 1,
-                  childAspectRatio: 16 / 9,
-                  mainAxisSpacing: 12,
-                ),
-                itemCount: _documents.length,
-                itemBuilder: (context, index) {
-                  final doc = _documents[index];
-                  return DocumentCard(
-                    document: doc,
-                    onTap: () => _openDocument(doc),
-                    onEdit1: () => _pickAndSetImage(index, second: false),
-                    onEdit2: () => _pickAndSetImage(index, second: true),
-                  );
-                },
-              ),
-            ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          _buildDocumentsPage(),
+          _RemindersPage(
+            documents: _documents,
+            onPickDate: _setExpiryDate,
+            onClearDate: _clearExpiryDate,
+            onAddToCalendar: _addToCalendar,
+          ),
+          _SettingsPage(
+            onToggleNotifications: _toggleNotifications,
+            notificationsEnabled: _notificationsEnabled,
+          ),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
 }
@@ -294,4 +534,251 @@ class _BrightnessScopeState extends State<_BrightnessScope> {
 
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+class _RemindersPage extends StatelessWidget {
+  const _RemindersPage({
+    required this.documents,
+    required this.onPickDate,
+    required this.onClearDate,
+    required this.onAddToCalendar,
+  });
+
+  final List<UserDocument> documents;
+  final ValueChanged<int> onPickDate;
+  final ValueChanged<int> onClearDate;
+  final ValueChanged<int> onAddToCalendar;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const Text(
+          'Υπενθυμίσεις',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ..._buildDocumentCards(),
+      ],
+    );
+  }
+
+  List<Widget> _buildDocumentCards() {
+    if (documents.isEmpty) {
+      return [
+        Text(
+          'Δεν υπάρχουν έγγραφα.',
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+        ),
+      ];
+    }
+    return List<Widget>.generate(documents.length, (index) {
+      final doc = documents[index];
+      final expiryLabel = doc.expiresAt == null
+          ? 'Χωρίς ημερομηνία'
+          : _formatDate(doc.expiresAt!);
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.event_note, color: Colors.white70),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    doc.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Λήξη: $expiryLabel',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      FilledButton(
+                        onPressed: () => onPickDate(index),
+                        child: Text(
+                          doc.expiresAt == null ? 'Ορισμός' : 'Αλλαγή',
+                        ),
+                      ),
+                      if (doc.expiresAt != null)
+                        OutlinedButton(
+                          onPressed: () => onClearDate(index),
+                          child: const Text('Καθαρισμός'),
+                        ),
+                      if (doc.expiresAt != null)
+                        OutlinedButton.icon(
+                          onPressed: () => onAddToCalendar(index),
+                          icon: const Icon(Icons.calendar_month_rounded),
+                          label: const Text('Ημερολόγιο'),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
+  }
+}
+
+
+class _SettingsPage extends StatelessWidget {
+  const _SettingsPage({
+    required this.onToggleNotifications,
+    required this.notificationsEnabled,
+  });
+
+  final ValueChanged<bool> onToggleNotifications;
+  final bool notificationsEnabled;
+  static const String _licenseUrl =
+      'https://github.com/giannis10/Cycling_Walet/blob/master/LICENSE';
+  static const String _readmeUrl =
+      'https://github.com/giannis10/Cycling_Walet/blob/master/README.md';
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const Text(
+          'Ρυθμίσεις',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _SettingsTile(
+          icon: Icons.notifications_rounded,
+          title: 'Ειδοποιήσεις',
+          subtitle: 'Άνοιγμα ή κλείσιμο ειδοποιήσεων εφαρμογής.',
+          trailing: Switch(
+            value: notificationsEnabled,
+            onChanged: onToggleNotifications,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _SettingsTile(
+          icon: Icons.privacy_tip_rounded,
+          title: 'Απόρρητο',
+          subtitle: 'Άνοιγμα άδειας χρήσης.',
+          onTap: () => _HomeScreenState.openExternalUrl(
+            context,
+            _licenseUrl,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _SettingsTile(
+          icon: Icons.description_rounded,
+          title: 'README',
+          subtitle: 'Άνοιγμα του README στο GitHub.',
+          onTap: () => _HomeScreenState.openExternalUrl(
+            context,
+            _readmeUrl,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
+  const _SettingsTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.onTap,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: Colors.white70),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (trailing != null) trailing!,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

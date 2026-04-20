@@ -9,6 +9,8 @@ class UserDocument {
     required this.title,
     this.imagePath1,
     this.imagePath2,
+    this.expiresAt,
+    this.lastNotifiedAt,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -16,6 +18,8 @@ class UserDocument {
   final String title;
   final String? imagePath1;
   final String? imagePath2;
+  final DateTime? expiresAt;
+  final DateTime? lastNotifiedAt;
   final DateTime createdAt;
 
   UserDocument copyWith({
@@ -23,6 +27,8 @@ class UserDocument {
     String? title,
     String? imagePath1,
     String? imagePath2,
+    DateTime? expiresAt,
+    DateTime? lastNotifiedAt,
     DateTime? createdAt,
   }) {
     return UserDocument(
@@ -30,6 +36,8 @@ class UserDocument {
       title: title ?? this.title,
       imagePath1: imagePath1 ?? this.imagePath1,
       imagePath2: imagePath2 ?? this.imagePath2,
+      expiresAt: expiresAt ?? this.expiresAt,
+      lastNotifiedAt: lastNotifiedAt ?? this.lastNotifiedAt,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -46,6 +54,8 @@ class UserDocument {
       'title': title,
       'imagePath1': imagePath1,
       'imagePath2': imagePath2,
+      'expiresAt': expiresAt?.toIso8601String(),
+      'lastNotifiedAt': lastNotifiedAt?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -58,6 +68,8 @@ class UserDocument {
       title: map['title'] as String,
       imagePath1: (map['imagePath1'] as String?) ?? legacy,
       imagePath2: map['imagePath2'] as String?,
+      expiresAt: DateTime.tryParse(map['expiresAt'] as String? ?? ''),
+      lastNotifiedAt: DateTime.tryParse(map['lastNotifiedAt'] as String? ?? ''),
       createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ??
           DateTime.now(),
     );
