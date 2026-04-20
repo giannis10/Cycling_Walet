@@ -1,45 +1,110 @@
-# Cycling Wallet
+# 🚴 Cycling Wallet
 
-Μια Flutter εφαρμογή για γρήγορη αποθήκευση και προβολή αγωνιστικών εγγράφων
-ποδηλασίας (UCI, ΕΟΠ, κάρτα υγείας) με ασφαλή, offline πρόσβαση.
+> **Όλα τα αγωνιστικά σου έγγραφα — στη μύτη των δακτύλων σου.**
 
-## Για ποιον είναι
+Μια Flutter εφαρμογή για γρήγορη αποθήκευση και επίδειξη αγωνιστικών εγγράφων ποδηλασίας (UCI, ΕΟΠ, κάρτα υγείας) — με ασφαλή, 100% offline πρόσβαση.
 
-- Αθλητές/συνοδοί που χρειάζονται άμεση επίδειξη εγγράφων σε αγώνα
-- Χρήστες που θέλουν όλα τα έγγραφα οργανωμένα στο κινητό χωρίς cloud
+---
 
-## Χαρακτηριστικά
+## 🎯 Για ποιον είναι
 
-- Κάρτες εγγράφων με 1–2 φωτογραφίες ανά έγγραφο
-- Fullscreen προβολή με zoom & pan
-- Επιλογή από κάμερα ή συλλογή
-- Αυτόματη αποθήκευση και offline λειτουργία
-- Υπενθυμίσεις λήξης και ειδοποιήσεις
-- Προσθήκη υπενθύμισης στο Ημερολόγιο (για iPhone/PWA)
-- Εγκατάσταση ως PWA από browser
+| 👤 Αθλητής / Συνοδός | 🔒 Privacy-first χρήστης |
+|---|---|
+| Άμεση επίδειξη εγγράφων στον έλεγχο αγώνα | Όλα τα έγγραφα στο κινητό, χωρίς cloud |
 
-## Διαθεσιμότητα & links
+---
 
-- **Android (APK)**: [GitHub Releases](https://github.com/giannis10/Cycling_Walet/releases)
-- **iPhone (PWA)**: [https://giannis10.github.io/Cycling_Walet/](https://giannis10.github.io/Cycling_Walet/)
-- **Web (PWA)**: ίδιο link, εγκατάσταση από τον browser
+## ✨ Χαρακτηριστικά
 
-## Υπενθυμίσεις
+- 🪪 **Κάρτες εγγράφων** με 1–2 φωτογραφίες ανά έγγραφο
+- 🔍 **Fullscreen προβολή** με zoom & pan
+- 📷 **Επιλογή** από κάμερα ή συλλογή
+- 💾 **Αυτόματη αποθήκευση** και offline λειτουργία
+- ☀️ **Προσωρινή ενίσχυση φωτεινότητας** κατά την προβολή
 
-- Android/iOS: ειδοποίηση στην ημερομηνία λήξης.
-- iPhone PWA: επιλέγεις “Ημερολόγιο” για να δημιουργηθεί υπενθύμιση στο Calendar.
+---
 
-## Αποθήκευση & ιδιωτικότητα
+## 🔐 Αποθήκευση & Ιδιωτικότητα
 
-- Οι φωτογραφίες αποθηκεύονται **τοπικά** στον ιδιωτικό χώρο της εφαρμογής
-  (Application Documents / app_flutter) και δεν εξαρτώνται από το album.
-- Αν διαγραφεί μια φωτογραφία από τη συλλογή, η εφαρμογή κρατά το δικό της αντίγραφο.
-- Δεν γίνεται αποστολή δεδομένων σε server ή cloud.
+- Οι φωτογραφίες αντιγράφονται σε **ιδιωτικό χώρο** της εφαρμογής (`Application Documents / app_flutter`) και δεν εξαρτώνται από το album.
+- Αν διαγραφεί μια φωτογραφία από τη συλλογή, η εφαρμογή **κρατά το δικό της αντίγραφο**.
+- ❌ Δεν γίνεται αποστολή δεδομένων σε server ή cloud.
 
-## Σημειώσεις
+---
 
-- Η διαγραφή εφαρμογής ή “Clear Data/Storage” σβήνει τα τοπικά δεδομένα.
+## 🛠️ Τεχνικές λεπτομέρειες
 
-## Άδεια
+| Στοιχείο | Τεχνολογία |
+|---|---|
+| Framework | Flutter (Android / iOS) |
+| Metadata | `shared_preferences` |
+| Αρχεία εικόνας | `path_provider` (app-specific directory) |
+| Προβολή εικόνας | `photo_view` |
+| Επιλογή φωτογραφίας | `image_picker` |
 
-Το project διατίθεται με “Personal Use” άδεια. Δες το `LICENSE`.
+---
+
+## 📁 Δομή Project
+
+```
+lib/
+├── main.dart
+├── models/
+│   └── document.dart
+├── screens/
+│   └── home_screen.dart
+├── services/
+│   └── storage_service.dart
+└── widgets/
+    └── document_card.dart
+```
+
+---
+
+## 🚀 Εγκατάσταση & Εκτέλεση
+
+```bash
+# 1. Εγκατάσταση Flutter SDK
+# https://docs.flutter.dev/get-started/install
+
+# 2. Λήψη dependencies
+flutter pub get
+
+# 3. Εκτέλεση
+flutter run
+```
+
+### 📦 Έτοιμα Builds
+
+Για εγκατάσταση σε Android ή iPhone, υπάρχουν έτοιμες εκδόσεις στα **[GitHub Releases](../../releases)** — δεν απαιτείται Flutter SDK.
+
+---
+
+## 📋 Permissions
+
+<details>
+<summary><strong>Android</strong></summary>
+
+```xml
+CAMERA
+READ_EXTERNAL_STORAGE
+WRITE_EXTERNAL_STORAGE  <!-- ανάλογα με έκδοση Android -->
+```
+</details>
+
+<details>
+<summary><strong>iOS</strong></summary>
+
+```
+NSCameraUsageDescription
+NSPhotoLibraryUsageDescription
+NSPhotoLibraryAddUsageDescription
+```
+</details>
+
+---
+
+## 📝 Σημειώσεις
+
+- Τα δεδομένα αποθηκεύονται **τοπικά** και διαγράφονται με απεγκατάσταση.
+- Αν αλλάξει φωτογραφία, αντικαθίσταται αυτόματα το αντίγραφο στο app directory.

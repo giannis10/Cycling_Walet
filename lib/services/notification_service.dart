@@ -33,7 +33,8 @@ class NotificationService {
     final timeZone = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(timeZone.identifier));
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings();
     const settings =
         InitializationSettings(android: androidSettings, iOS: iosSettings);
@@ -207,9 +208,8 @@ class NotificationService {
   }
 
   Future<void> _createChannel() async {
-    final android =
-        _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
     if (android == null) {
       return;
     }

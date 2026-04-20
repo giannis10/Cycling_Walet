@@ -89,8 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _startWebReminderTimer() {
     _webReminderTimer?.cancel();
-    _webReminderTimer =
-        Timer.periodic(const Duration(minutes: 15), (_) => _checkDueReminders());
+    _webReminderTimer = Timer.periodic(
+        const Duration(minutes: 15), (_) => _checkDueReminders());
   }
 
   Future<void> _checkDueReminders({List<UserDocument>? docs}) async {
@@ -344,7 +344,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildDocumentsPage() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.white));
+      return const Center(
+          child: CircularProgressIndicator(color: Colors.white));
     }
     return Padding(
       padding: const EdgeInsets.all(12.0),
@@ -655,7 +656,6 @@ class _RemindersPage extends StatelessWidget {
     return '$day/$month/${date.year}';
   }
 }
-
 
 class _SettingsPage extends StatelessWidget {
   const _SettingsPage({

@@ -1,0 +1,78 @@
+name: Flutter iOS + Android Build
+
+on:
+  workflow_dispatch: 
+
+permissions:
+  contents: write 
+
+jobs:
+  # --- Android Build Job ---
+  build-android:
+    name: 🤖 Android APK Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17' 
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK (Release)
+        run: flutter build apk --release
+
+      - name: Upload APK to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/app/outputs/flutter-apk/app-release.apk
+          asset_name: app-release.apk
+          tag: v1.0.0
+          overwrite: true
+          body: "Auto-generated Android & iOS Builds"
+
+  # --- iOS Build Job ---
+  build-ios:
+    name: 🎉 iOS Build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          architecture: x64
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS (Release, no code-sign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Prepare IPA
+        run: |
+          mkdir -p Payload
+          mv Runner.app Payload/
+          zip -r FlutterIpaExport.ipa Payload
+        working-directory: build/ios/iphoneos
+
+      - name: Upload iOS IPA to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/ios/iphoneos/FlutterIpaExport.ipa
+          asset_name: FlutterIpaExport.ipa
+          tag: v1.0.0
+          overwrite: true

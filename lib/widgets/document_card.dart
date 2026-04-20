@@ -294,7 +294,8 @@ class _ImageSlot extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              if (_hasImage) Positioned.fill(child: _PreviewImage(path: imagePath!)),
+              if (_hasImage)
+                Positioned.fill(child: _PreviewImage(path: imagePath!)),
               if (!_hasImage)
                 Center(
                   child: Icon(
@@ -307,7 +308,8 @@ class _ImageSlot extends StatelessWidget {
                 right: 8,
                 bottom: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.55),
                     borderRadius: BorderRadius.circular(10),
@@ -341,12 +343,14 @@ class _PreviewImage extends StatelessWidget {
         ? Image.network(
             path,
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+            errorBuilder: (context, error, stackTrace) =>
+                const SizedBox.shrink(),
           )
         : Image.file(
             File(path),
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+            errorBuilder: (context, error, stackTrace) =>
+                const SizedBox.shrink(),
           );
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
