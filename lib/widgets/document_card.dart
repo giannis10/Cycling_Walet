@@ -4,17 +4,24 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../models/document.dart';
+import '../utils/expiry_display.dart';
 
 class DocumentCard extends StatelessWidget {
   const DocumentCard({
     super.key,
     required this.document,
+    required this.countdownBadge,
     required this.onTap,
     required this.onEdit1,
     required this.onEdit2,
+    this.headerKey,
+    this.photosKey,
   });
 
   final UserDocument document;
+  final bool countdownBadge;
+  final Key? headerKey;
+  final Key? photosKey;
   final VoidCallback onTap;
   final VoidCallback onEdit1;
   final VoidCallback onEdit2;
@@ -27,25 +34,27 @@ class DocumentCard extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: style.gradient,
-              ),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: style.borderColor),
-            ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: style.gradient,
+          ),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: style.borderColor),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                key: headerKey,
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(14),
+                child: Row(
                   children: [
                     _IconBadge(iconAsset: style.iconAsset),
                     const SizedBox(width: 12),
@@ -73,39 +82,56 @@ class DocumentCard extends StatelessWidget {
                           Text(
                             _expiryLabel(),
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.7),
+                              color: ExpiryDisplay.labelColor(
+                                document.expiresAt,
+                                countdownBadge: countdownBadge,
+                              ),
                               fontSize: 11,
+                              fontWeight: countdownBadge &&
+                                      document.expiresAt != null
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    _StatusChip(status: status),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (_expiryCountdownBadge() != null) ...[
+                          _CountdownBadge(text: _expiryCountdownBadge()!),
+                          const SizedBox(height: 6),
+                        ],
+                        _StatusChip(status: status),
+                      ],
+                    ),
                   ],
                 ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _ImageSlot(
-                        label: 'Μπρος',
-                        imagePath: document.imagePath1,
-                        onTap: onEdit1,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _ImageSlot(
-                        label: 'Πίσω',
-                        imagePath: document.imagePath2,
-                        onTap: onEdit2,
-                      ),
-                    ),
-                  ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              key: photosKey,
+              children: [
+                Expanded(
+                  child: _ImageSlot(
+                    label: 'Μπρος',
+                    imagePath: document.imagePath1,
+                    onTap: onEdit1,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _ImageSlot(
+                    label: 'Πίσω',
+                    imagePath: document.imagePath2,
+                    onTap: onEdit2,
+                  ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -119,17 +145,17 @@ class DocumentCard extends StatelessWidget {
   }
 
   String _expiryLabel() {
-    final expiresAt = document.expiresAt;
-    if (expiresAt == null) {
-      return 'Χωρίς ημερομηνία λήξης';
-    }
-    return 'Λήγει ${_formatDate(expiresAt)}';
+    return ExpiryDisplay.label(
+      document.expiresAt,
+      countdownBadge: countdownBadge,
+    );
   }
 
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    return '$day/$month/${date.year}';
+  String? _expiryCountdownBadge() {
+    return ExpiryDisplay.badgeShortText(
+      document.expiresAt,
+      countdownBadge,
+    );
   }
 
   _CardStyle _styleFor(String title) {
@@ -209,6 +235,32 @@ class _StatusInfo {
   final String label;
   final Color background;
   final Color foreground;
+}
+
+class _CountdownBadge extends StatelessWidget {
+  const _CountdownBadge({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0x44EF4444),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFCA5A5).withValues(alpha: 0.6)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Color(0xFFFCA5A5),
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
 }
 
 class _StatusChip extends StatelessWidget {

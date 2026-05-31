@@ -11,6 +11,7 @@ class UserDocument {
     this.imagePath2,
     this.expiresAt,
     this.lastNotifiedAt,
+    this.remindersEnabled = true,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -20,6 +21,8 @@ class UserDocument {
   final String? imagePath2;
   final DateTime? expiresAt;
   final DateTime? lastNotifiedAt;
+  /// Αν false, δεν προγραμματίζονται ειδοποιήσεις για αυτό το έγγραφο.
+  final bool remindersEnabled;
   final DateTime createdAt;
 
   UserDocument copyWith({
@@ -28,7 +31,10 @@ class UserDocument {
     String? imagePath1,
     String? imagePath2,
     DateTime? expiresAt,
+    bool clearExpiresAt = false,
     DateTime? lastNotifiedAt,
+    bool clearLastNotifiedAt = false,
+    bool? remindersEnabled,
     DateTime? createdAt,
   }) {
     return UserDocument(
@@ -36,8 +42,10 @@ class UserDocument {
       title: title ?? this.title,
       imagePath1: imagePath1 ?? this.imagePath1,
       imagePath2: imagePath2 ?? this.imagePath2,
-      expiresAt: expiresAt ?? this.expiresAt,
-      lastNotifiedAt: lastNotifiedAt ?? this.lastNotifiedAt,
+      expiresAt: clearExpiresAt ? null : (expiresAt ?? this.expiresAt),
+      lastNotifiedAt:
+          clearLastNotifiedAt ? null : (lastNotifiedAt ?? this.lastNotifiedAt),
+      remindersEnabled: remindersEnabled ?? this.remindersEnabled,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -56,6 +64,7 @@ class UserDocument {
       'imagePath2': imagePath2,
       'expiresAt': expiresAt?.toIso8601String(),
       'lastNotifiedAt': lastNotifiedAt?.toIso8601String(),
+      'remindersEnabled': remindersEnabled,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -70,6 +79,7 @@ class UserDocument {
       imagePath2: map['imagePath2'] as String?,
       expiresAt: DateTime.tryParse(map['expiresAt'] as String? ?? ''),
       lastNotifiedAt: DateTime.tryParse(map['lastNotifiedAt'] as String? ?? ''),
+      remindersEnabled: map['remindersEnabled'] as bool? ?? true,
       createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ??
           DateTime.now(),
     );

@@ -22,12 +22,12 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   bool _enabled = true;
-  int _reminderDays = 10;
+  int _reminderDays = 30;
 
   Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
     _enabled = prefs.getBool(_enabledKey) ?? true;
-    _reminderDays = prefs.getInt(_reminderDaysKey) ?? 10;
+    _reminderDays = prefs.getInt(_reminderDaysKey) ?? 30;
     if (kIsWeb) {
       return;
     }
@@ -118,6 +118,7 @@ class NotificationService {
     required DateTime date,
     required String title,
     required String body,
+    DateTime? expiry,
   }) async {
     if (kIsWeb) {
       return;
@@ -127,13 +128,23 @@ class NotificationService {
       return;
     }
 
-    final scheduledDate = tz.TZDateTime.from(
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduledDate = tz.TZDateTime.from(
       DateTime(date.year, date.month, date.day, 9),
       tz.local,
     );
 
-    if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
-      return;
+    if (scheduledDate.isBefore(now)) {
+      if (expiry != null && expiry.isAfter(DateTime.now())) {
+        scheduledDate = tz.TZDateTime.from(
+          DateTime(now.year, now.month, now.day, now.hour, now.minute)
+              .add(const Duration(minutes: 1)),
+          tz.local,
+        );
+      } else {
+        await _plugin.cancel(id);
+        return;
+      }
     }
 
     const details = NotificationDetails(
@@ -147,14 +158,26 @@ class NotificationService {
       iOS: DarwinNotificationDetails(),
     );
 
-    await _plugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduledDate,
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
+    try {
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduledDate,
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+    } catch (e) {
+      debugPrint('Exact schedule failed ($e), trying inexact.');
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduledDate,
+        details,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      );
+    }
   }
 
   Future<void> cancelNotification(int id) async {
@@ -175,7 +198,7 @@ class NotificationService {
       if (!kIsWeb) {
         await _plugin.cancelAll();
       }
-      return false;
+      return _enabled;
     }
 
     bool granted = true;
@@ -208,7 +231,7 @@ class NotificationService {
     if (!granted) {
       await _plugin.cancelAll();
     }
-    return granted;
+    return _enabled;
   }
 
   Future<void> setReminderDays(int days) async {

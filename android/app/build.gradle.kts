@@ -60,6 +60,9 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            
+            // Η γραμμή για το ProGuard/R8
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }

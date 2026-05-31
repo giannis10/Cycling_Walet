@@ -74,5 +74,5 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build/ios/iphoneos/FlutterIpaExport.ipa
           asset_name: FlutterIpaExport.ipa
-          tag: v1.0.0
+          tag: v1.0.1
           overwrite: true

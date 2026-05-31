@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'screens/home_screen.dart';
+import 'widgets/app_brand_icon.dart';
+import 'services/app_preferences_service.dart';
 import 'services/notification_service.dart';
 import 'services/pwa_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.instance.initialize();
+  await AppPreferencesService.instance.initialize();
   PwaService.instance.init();
   runApp(const WalletApp());
 }
@@ -101,13 +104,13 @@ class _AppEntryState extends State<_AppEntry> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_shouldShowLanding) {
-      return const HomeScreen();
+    if (_shouldShowLanding) {
+      return _LandingScreen(
+        onInstall: () => _handleInstall(context),
+        onContinue: _continueWithoutInstall,
+      );
     }
-    return _LandingScreen(
-      onInstall: () => _handleInstall(context),
-      onContinue: _continueWithoutInstall,
-    );
+    return const HomeScreen();
   }
 }
 
@@ -130,30 +133,7 @@ class _LandingScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
-                  child: Transform.scale(
-                    scale: 1.25,
-                    child: Image.asset(
-                      'android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png',
-                      fit: BoxFit.cover,
-                      alignment: Alignment.center,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.directions_bike_rounded,
-                        color: Colors.white,
-                        size: 48,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              const AppBrandIcon(),
               const SizedBox(height: 20),
               const Text(
                 'Cycling Wallet',
