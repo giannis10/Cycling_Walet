@@ -34,12 +34,4 @@ class DateExtractionService {
     }
   }
 
-  Future<String> getRawOcrText(String imagePath) async {
-    if (kIsWeb || imagePath.isEmpty) return '';
-    try {
-      return await ocr.recognizeTextFromImagePath(imagePath);
-    } catch (_) {
-      return 'Error extracting text';
-    }
-  }
 }
