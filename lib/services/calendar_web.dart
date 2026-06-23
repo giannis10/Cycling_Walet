@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:convert';
 import 'dart:html' as html;
 
@@ -58,7 +59,7 @@ String _buildIcs({
 
 String _formatUtc(DateTime date) {
   final dt = date.toUtc();
-  return _format(dt) + 'Z';
+  return '${_format(dt)}Z';
 }
 
 String _formatLocal(DateTime date) {
@@ -72,7 +73,7 @@ String _format(DateTime date) {
   final h = date.hour.toString().padLeft(2, '0');
   final min = date.minute.toString().padLeft(2, '0');
   final s = date.second.toString().padLeft(2, '0');
-  return '${y}${m}${d}T${h}${min}${s}';
+  return '$y$m${d}T$h$min$s';
 }
 
 String _escape(String value) {

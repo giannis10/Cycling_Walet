@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:screen_brightness/screen_brightness.dart';
@@ -18,7 +19,10 @@ import '../services/storage_service.dart';
 import '../tour/app_feature_tour.dart';
 import '../utils/expiry_display.dart';
 import '../widgets/document_card.dart';
+import '../services/github_update_service.dart';
 
+/// Κεντρική οθόνη της εφαρμογής που διαχειρίζεται το UI (Bottom Navigation)
+/// και την εναλλαγή των επιμέρους καρτελών (Έγγραφα, Υπενθυμίσεις, Ρυθμίσεις).
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -54,9 +58,14 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  /// Αρχική φόρτωση δεδομένων από την τοπική μνήμη.
   Future<void> _load() async {
     final docs = await _storage.loadDocuments();
     final syncedDocs = await _storage.ensureImagesInAppDirectory(docs);
+    
+    // Ελάχιστη καθυστέρηση για αποφυγή τρεμοπαίγματος (flickering) της splash οθόνης.
+    await Future<void>.delayed(const Duration(milliseconds: 1200));
+    
     if (!mounted) return;
     setState(() {
       _documents = syncedDocs;
@@ -70,6 +79,43 @@ class _HomeScreenState extends State<HomeScreen> {
       _startWebReminderTimer();
     }
     _scheduleFeatureTourIfNeeded();
+
+    // Check for updates after a short delay
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) _checkForUpdates();
+    });
+  }
+
+  /// Ελέγχει στο παρασκήνιο για νέα έκδοση (Release) στο GitHub.
+  Future<void> _checkForUpdates() async {
+    final update = await GithubUpdateService.checkForUpdates();
+    if (update != null && update.hasUpdate && mounted) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Νέα Έκδοση'),
+          content: Text(
+            'Υπάρχει διαθέσιμη μια νέα έκδοση της εφαρμογής (${update.latestVersion}). Θέλετε να την κατεβάσετε τώρα;',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Αργότερα'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                Navigator.of(ctx).pop();
+                final url = Uri.parse(update.releaseUrl);
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+              child: const Text('Λήψη'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   void _scheduleFeatureTourIfNeeded() {
@@ -117,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
 
       final targetContext = key.currentContext;
-      if (targetContext != null) {
+      if (targetContext != null && targetContext.mounted) {
         final renderBox = targetContext.findRenderObject();
         if (renderBox is RenderBox &&
             renderBox.hasSize &&
@@ -139,6 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Εμφάνιση του διαδραστικού οδηγού λειτουργιών (Feature Tour).
   Future<void> showFeatureTour({bool force = false}) async {
     if (!mounted || _isLoading) return;
     if (!force && AppPreferencesService.instance.featureTourCompleted) {
@@ -359,6 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     setState(() => _reminderDays = days);
     await _syncReminders(_documents);
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Οι υπενθυμίσεις θα έρχονται $_reminderDays μέρες πριν.'),
@@ -628,8 +676,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildDocumentsPage() {
     if (_isLoading) {
-      return const Center(
-          child: CircularProgressIndicator(color: Colors.white));
+      return Center(
+        child: SizedBox(
+          width: 240,
+          height: 240,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const SpinKitRipple(
+                  color: Colors.white24,
+                  size: 240.0,
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: Image.asset(
+                    'assets/icons/playstore-icon.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                ),
+                const SpinKitDualRing(
+                  color: Colors.white70,
+                  size: 140.0,
+                  lineWidth: 3.0,
+                ),
+              ],
+            ),
+          ),
+      );
     }
     return ListView.separated(
       padding: const EdgeInsets.all(12),
@@ -729,10 +803,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('Cycling Wallet'),
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -812,11 +886,11 @@ class _FullScreenPhoto extends StatelessWidget {
     ];
     return _BrightnessScope(
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: Text(document.title),
           centerTitle: true,
-          backgroundColor: Colors.black,
+          backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
         ),
         body: paths.isEmpty
@@ -841,7 +915,7 @@ class _FullScreenPhoto extends StatelessWidget {
                     minScale: PhotoViewComputedScale.contained,
                     maxScale: PhotoViewComputedScale.covered * 2.5,
                     backgroundDecoration:
-                        const BoxDecoration(color: Colors.black),
+                        const BoxDecoration(color: Colors.transparent),
                   );
                 },
               ),
@@ -1029,7 +1103,7 @@ class _RemindersPage extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.event_note, color: Colors.white70),
+            const Icon(Icons.event_note, color: Colors.white70),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

@@ -8,6 +8,8 @@ import 'package:timezone/timezone.dart' as tz;
 import 'notification_web_stub.dart'
     if (dart.library.html) 'notification_web.dart' as web;
 
+/// Υπηρεσία διαχείρισης τοπικών ειδοποιήσεων (Local Notifications).
+/// Υποστηρίζει Android, iOS και Web μέσω plugin.
 class NotificationService {
   NotificationService._();
 
@@ -24,6 +26,8 @@ class NotificationService {
   bool _enabled = true;
   int _reminderDays = 30;
 
+  /// Αρχικοποιεί το plugin, φορτώνει τις ρυθμίσεις από SharedPreferences
+  /// και ρυθμίζει τα TimeZones για τον προγραμματισμό (scheduling).
   Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
     _enabled = prefs.getBool(_enabledKey) ?? true;
@@ -113,6 +117,7 @@ class NotificationService {
     return true;
   }
 
+  /// Προγραμματίζει μια ειδοποίηση λήξης εγγράφου για συγκεκριμένη ημερομηνία/ώρα.
   Future<void> scheduleExpiryNotification({
     required int id,
     required DateTime date,
@@ -168,7 +173,7 @@ class NotificationService {
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
     } catch (e) {
-      debugPrint('Exact schedule failed ($e), trying inexact.');
+      debugPrint('Η ακριβής προγραμματισμένη ειδοποίηση απέτυχε ($e), δοκιμή με inexact.');
       await _plugin.zonedSchedule(
         id,
         title,

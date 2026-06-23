@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import '../models/document.dart';
 import '../utils/expiry_display.dart';
 
+/// Γραφικό στοιχείο (Widget) που αναπαριστά μια κάρτα εγγράφου (π.χ. UCI, ΕΟΠ).
+/// Διαχειρίζεται την εμφάνιση των πληροφοριών και των επισυναπτόμενων εικόνων.
 class DocumentCard extends StatelessWidget {
   const DocumentCard({
     super.key,
@@ -22,8 +24,12 @@ class DocumentCard extends StatelessWidget {
   final bool countdownBadge;
   final Key? headerKey;
   final Key? photosKey;
+  
+  /// Ενέργεια (callback) όταν ο χρήστης πατάει στην κάρτα για προβολή.
   final VoidCallback onTap;
+  /// Ενέργεια όταν ο χρήστης προσθέτει/αλλάζει την 1η φωτογραφία (Μπροστινή όψη).
   final VoidCallback onEdit1;
+  /// Ενέργεια όταν ο χρήστης προσθέτει/αλλάζει την 2η φωτογραφία (Πίσω όψη).
   final VoidCallback onEdit2;
 
   @override

@@ -94,6 +94,7 @@ class AppFeatureTour {
       },
     );
 
+    if (!context.mounted) return;
     coach.show(context: context);
   }
 

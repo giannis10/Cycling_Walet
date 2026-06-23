@@ -6,14 +6,19 @@ import 'services/app_preferences_service.dart';
 import 'services/notification_service.dart';
 import 'services/pwa_service.dart';
 
+/// Κύριο σημείο εκκίνησης της εφαρμογής.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Αρχικοποίηση βασικών υπηρεσιών
   await NotificationService.instance.initialize();
   await AppPreferencesService.instance.initialize();
   PwaService.instance.init();
+  
   runApp(const WalletApp());
 }
 
+/// Βασική κλάση της εφαρμογής (Root Widget).
 class WalletApp extends StatelessWidget {
   const WalletApp({super.key});
 
@@ -22,12 +27,29 @@ class WalletApp extends StatelessWidget {
     return MaterialApp(
       title: 'Cycling Wallet',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue, brightness: Brightness.dark),
         useMaterial3: true,
-        scaffoldBackgroundColor: Colors.black,
+        scaffoldBackgroundColor: Colors.transparent,
         appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.black, foregroundColor: Colors.white),
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
       ),
+      // Παγκόσμιο φόντο εφαρμογής (Gradient)
+      builder: (context, child) {
+        return Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              colors: [Color(0xFF1E293B), Colors.black],
+              radius: 1.2,
+              center: Alignment.center,
+            ),
+          ),
+          child: child,
+        );
+      },
       home: const _AppEntry(),
     );
   }
@@ -60,13 +82,14 @@ class _AppEntryState extends State<_AppEntry> {
         setState(() => _skipLanding = true);
         return;
       }
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Η εγκατάσταση ακυρώθηκε.')),
       );
       return;
     }
 
-    if (!mounted) return;
+    if (!context.mounted) return;
     if (pwa.isIos) {
       showDialog<void>(
         context: context,
@@ -126,7 +149,7 @@ class _LandingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),

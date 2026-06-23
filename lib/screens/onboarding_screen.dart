@@ -20,7 +20,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
   int _page = 0;
 
-  static final _slides = <_OnboardingSlide>[
+  static const _slides = <_OnboardingSlide>[
     _OnboardingSlide(
       icon: Icons.directions_bike_rounded,
       useAppIcon: true,

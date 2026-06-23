@@ -13,7 +13,9 @@ class ExtractedDocumentDate {
   final String description;
 }
 
-/// Εξαγωγή ημερομηνίας από OCR κείμενο ανά τύπο κάρτας.
+/// Κλάση εξαγωγής ημερομηνιών μέσω OCR.
+/// Χρησιμοποιεί ευρετικούς αλγορίθμους (heuristics) ως εναλλακτική λύση,
+/// δεδομένου ότι το on-device OCR δυσκολεύεται με ελληνικούς χαρακτήρες.
 class DocumentDateParser {
   static const String _datePattern =
       r'(\d{1,2})\s*[./\-]\s*(\d{1,2})\s*[./\-]\s*(\d{2,4})';
@@ -28,43 +30,96 @@ class DocumentDateParser {
 
     switch (kind) {
       case DocumentCardKind.uci:
+        // Εξαγωγή μέσω αγγλικών ετικετών (υψηλή αξιοπιστία OCR).
         return _parseExpiry(
-          normalized,
-          labels: const [
-            r'valid\s+until',
-            r'valid\s+thru',
-            r'valid\s+till',
-            r'expires',
-            r'expiry',
-            r'ληγει',
-          ],
-          description: 'λήξη UCI',
-        );
+              normalized,
+              labels: const [
+                r'valid\s+until',
+                r'valid\s+thru',
+                r'valid\s+till',
+                r'expires',
+                r'expiry',
+                r'ληγει',
+              ],
+              description: 'λήξη UCI',
+            ) ??
+            _fallbackFromAllDates(normalized, description: 'λήξη UCI');
       case DocumentCardKind.eop:
+        // Δοκιμή αναζήτησης με ετικέτα. Αν αποτύχει, χρήση ευρετικού αλγορίθμου.
         return _parseExpiry(
-          normalized,
-          labels: const [
-            r'ισχυει\s+εως',
-            r'ισχει\s+εως',
-            r'valid\s+until',
-          ],
-          description: 'λήξη ΕΟΠ',
-        );
+              normalized,
+              labels: const [
+                r'ισχυει\s+εως',
+                r'ισχει\s+εως',
+                r'valid\s+until',
+              ],
+              description: 'λήξη ΕΟΠ',
+            ) ??
+            _fallbackEopFromAllDates(normalized);
       case DocumentCardKind.health:
         return _parseHealthIssueDate(normalized);
       case DocumentCardKind.other:
         return _parseExpiry(
-          normalized,
-          labels: const [
-            r'valid\s+until',
-            r'ισχυει\s+εως',
-            r'ληγει',
-            r'expires',
-          ],
-          description: 'λήξη',
-        );
+              normalized,
+              labels: const [
+                r'valid\s+until',
+                r'ισχυει\s+εως',
+                r'ληγει',
+                r'expires',
+              ],
+              description: 'λήξη',
+            ) ??
+            _fallbackFromAllDates(normalized, description: 'λήξη');
     }
   }
+
+  /// Βρίσκει όλες τις ημερομηνίες στο κείμενο.
+  static List<DateTime> _allDates(String text) {
+    return _dateCapture
+        .allMatches(text)
+        .map(_dateFromMatch)
+        .whereType<DateTime>()
+        .toList();
+  }
+
+  /// Ευρετικός αλγόριθμος ΕΟΠ: Επιλέγει την πιο μακρινή στο χρόνο ημερομηνία ως λήξη.
+  static ExtractedDocumentDate? _fallbackEopFromAllDates(String text) {
+    final dates = _allDates(text);
+    if (dates.isEmpty) return null;
+
+    dates.sort();
+    final expiry = dates.last;
+    DateTime? issue;
+    if (dates.length >= 2) {
+      final candidate = dates[dates.length - 2];
+      if (!_isSameDay(candidate, expiry)) {
+        issue = candidate;
+      }
+    }
+
+    return ExtractedDocumentDate(
+      expiryDate: expiry,
+      issueDate: issue,
+      description: 'λήξη ΕΟΠ (εκτίμηση)',
+    );
+  }
+
+  /// Γενική ευρετική: παίρνει την πιο μελλοντική ημερομηνία στο κείμενο.
+  static ExtractedDocumentDate? _fallbackFromAllDates(
+    String text, {
+    required String description,
+  }) {
+    final dates = _allDates(text);
+    if (dates.isEmpty) return null;
+    dates.sort();
+    return ExtractedDocumentDate(
+      expiryDate: dates.last,
+      description: '$description (εκτίμηση)',
+    );
+  }
+
+  static bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   static ExtractedDocumentDate? _parseExpiry(
     String text, {
@@ -121,15 +176,26 @@ class DocumentDateParser {
       if (match == null) continue;
       final issue = _dateFromMatch(match);
       if (issue == null) continue;
-      final expiry = _addOneYear(issue);
       return ExtractedDocumentDate(
-        expiryDate: expiry,
+        expiryDate: _addOneYear(issue),
         issueDate: issue,
         description: 'έκδοση κάρτας υγείας',
       );
     }
 
-    return null;
+    // Στις κάρτες υγείας η ημερομηνία είναι συχνά χειρόγραφη, με αποτέλεσμα να αποτυγχάνει το OCR.
+    // Εναλλακτική μέθοδος: Ανάκτηση της πιο πρόσφατης ημερομηνίας, αγνοώντας πιθανές ημερομηνίες γέννησης (> τρέχον έτος - 2).
+    final currentYear = DateTime.now().year;
+    final minYear = currentYear - 2;
+    final dates = _allDates(text).where((d) => d.year >= minYear).toList();
+    if (dates.isEmpty) return null;
+    dates.sort();
+    final issue = dates.last;
+    return ExtractedDocumentDate(
+      expiryDate: _addOneYear(issue),
+      issueDate: issue,
+      description: 'έκδοση κάρτας υγείας (εκτίμηση)',
+    );
   }
 
   static DateTime? _firstDateIn(String fragment) {

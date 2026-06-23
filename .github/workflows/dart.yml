@@ -29,6 +29,23 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Extract Version
+        id: extract_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          echo "APP_VERSION=v$VERSION" >> $GITHUB_ENV
+
+      - name: Setup Keystore & key.properties
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          echo "storePassword=$KEY_PASSWORD" > android/key.properties
+          echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
+          echo "keyAlias=upload" >> android/key.properties
+          echo "storeFile=../app/upload-keystore.jks" >> android/key.properties
+
       - name: Build APK (Release)
         run: flutter build apk --release
 
@@ -38,7 +55,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build/app/outputs/flutter-apk/app-release.apk
           asset_name: app-release.apk
-          tag: v1.0.0
+          tag: ${{ env.APP_VERSION }}
           overwrite: true
           body: "Auto-generated Android & iOS Builds"
 
@@ -58,6 +75,12 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Extract Version
+        id: extract_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          echo "APP_VERSION=v$VERSION" >> $GITHUB_ENV
+
       - name: Build iOS (Release, no code-sign)
         run: flutter build ios --release --no-codesign
 
@@ -74,5 +97,5 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build/ios/iphoneos/FlutterIpaExport.ipa
           asset_name: FlutterIpaExport.ipa
-          tag: v1.0.1
+          tag: ${{ env.APP_VERSION }}
           overwrite: true

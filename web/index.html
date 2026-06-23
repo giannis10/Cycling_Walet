@@ -33,7 +33,74 @@
   <title>Cycling Wallet</title>
   <link rel="manifest" href="manifest.json">
 </head>
-<body>
+  <style>
+    body { background-color: #000000; margin: 0; padding: 0; overflow: hidden; }
+    #loading-indicator {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; 
+      background: radial-gradient(circle at center, #1E293B 0%, #000000 80%);
+      z-index: 9999;
+    }
+    .loading-wrapper {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ripple {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 100px; height: 100px;
+      margin-top: -50px; margin-left: -50px;
+      box-sizing: border-box;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: rippleAnim 1.5s cubic-bezier(0.21, 0.53, 0.56, 0.8) infinite;
+      z-index: 1;
+    }
+    .app-logo {
+      position: relative;
+      width: 100px; height: 100px; border-radius: 28px;
+      background-color: rgba(255,255,255,0.08); padding: 8px; box-sizing: border-box;
+      object-fit: contain;
+      z-index: 2;
+    }
+    .spinner {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 140px; height: 140px;
+      margin-top: -70px; margin-left: -70px;
+      box-sizing: border-box;
+      border: 3px solid rgba(255, 255, 255, 0.15);
+      border-top: 3px solid rgba(255, 255, 255, 0.7); border-radius: 50%;
+      animation: spin 1s linear infinite;
+      z-index: 3;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes rippleAnim {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+  </style>
+  <div id="loading-indicator">
+    <div class="loading-wrapper">
+      <div class="ripple"></div>
+      <img class="app-logo" src="assets/icons/playstore-icon.png" alt="Cycling Wallet" onerror="this.style.display='none'" />
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('flutter-first-frame', function() {
+      var loader = document.getElementById('loading-indicator');
+      if (loader) {
+        loader.style.display = 'none';
+      }
+    });
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

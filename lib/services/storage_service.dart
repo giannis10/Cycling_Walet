@@ -12,7 +12,8 @@ class StorageKeys {
   static const String documents = 'documents_v1';
 }
 
-/// Simple local storage using SharedPreferences.
+/// Υπηρεσία τοπικής αποθήκευσης δεδομένων μέσω SharedPreferences.
+/// Διαχειρίζεται την αποθήκευση του JSON των εγγράφων και τις εικόνες.
 class StorageService {
   Future<List<UserDocument>> loadDocuments() async {
     final prefs = await SharedPreferences.getInstance();
@@ -31,12 +32,14 @@ class StorageService {
     }
   }
 
+  /// Αποθηκεύει τη λίστα εγγράφων σε μορφή JSON.
   Future<void> saveDocuments(List<UserDocument> documents) async {
     final prefs = await SharedPreferences.getInstance();
     final raw = json.encode(documents.map((e) => e.toMap()).toList());
     await prefs.setString(StorageKeys.documents, raw);
   }
 
+  /// Αντιγράφει μια εικόνα στον τοπικό φάκελο της εφαρμογής (μόνο για Native).
   Future<String> persistImage({
     required String sourcePath,
     required String storageKey,
@@ -96,12 +99,12 @@ class StorageService {
   }
 
   Future<String?> loadLastViewedId() async {
-    // Deprecated: no longer auto-opening last viewed document
+    // Deprecated: Η λειτουργία αυτόματου ανοίγματος εγγράφου καταργήθηκε.
     return null;
   }
 
   Future<void> saveLastViewedId(String? id) async {
-    // Deprecated: noop
+    // Deprecated: Καμία ενέργεια
   }
 
   String storageKeyForIndex(int index) => 'doc_$index';
