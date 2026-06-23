@@ -5,6 +5,7 @@ import 'widgets/app_brand_icon.dart';
 import 'services/app_preferences_service.dart';
 import 'services/notification_service.dart';
 import 'services/pwa_service.dart';
+import 'widgets/animated_background.dart';
 
 /// Κύριο σημείο εκκίνησης της εφαρμογής.
 Future<void> main() async {
@@ -37,17 +38,10 @@ class WalletApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      // Παγκόσμιο φόντο εφαρμογής (Gradient)
+      // Παγκόσμιο φόντο εφαρμογής (Animated Gradient)
       builder: (context, child) {
-        return Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              colors: [Color(0xFF1E293B), Colors.black],
-              radius: 1.2,
-              center: Alignment.center,
-            ),
-          ),
-          child: child,
+        return AnimatedBackground(
+          child: child ?? const SizedBox(),
         );
       },
       home: const _AppEntry(),

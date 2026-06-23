@@ -19,6 +19,7 @@ import '../services/storage_service.dart';
 import '../tour/app_feature_tour.dart';
 import '../utils/expiry_display.dart';
 import '../widgets/document_card.dart';
+import '../widgets/interactive_bottom_menu.dart';
 import '../services/github_update_service.dart';
 
 /// Κεντρική οθόνη της εφαρμογής που διαχειρίζεται το UI (Bottom Navigation)
@@ -752,78 +753,24 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBottomNav() {
-    const items = <_NavItem>[
-      _NavItem(
-        label: 'Έγγραφα',
-        icon: Icons.folder_outlined,
-        selectedIcon: Icons.folder_rounded,
-      ),
-      _NavItem(
-        label: 'Υπενθυμίσεις',
-        icon: Icons.notifications_outlined,
-        selectedIcon: Icons.notifications_active_rounded,
-      ),
-      _NavItem(
-        label: 'Ρυθμίσεις',
-        icon: Icons.settings_outlined,
-        selectedIcon: Icons.settings_rounded,
-      ),
-    ];
-
-    return Material(
-      color: const Color(0xFF0C0C0C),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: List.generate(items.length, (index) {
-              final item = items[index];
-              final selected = _selectedIndex == index;
-              final color = selected ? Colors.white : Colors.white70;
-              final navKey = index == 0
-                  ? _tourKeys.navDocuments
-                  : (index == 1
-                      ? _tourKeys.navReminders
-                      : _tourKeys.navSettings);
-              return Expanded(
-                key: navKey,
-                child: InkWell(
-                  onTap: () => _onNavTap(index),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        selected ? item.selectedIcon : item.icon,
-                        color: color,
-                        size: 24,
-                      ),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            item.label,
-                            maxLines: 1,
-                            style: TextStyle(
-                              color: color,
-                              fontSize: 11,
-                              fontWeight: selected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
+    return InteractiveBottomMenu(
+      selectedIndex: _selectedIndex,
+      onItemSelected: _onNavTap,
+      items: const [
+        InteractiveMenuItem(
+          label: 'Έγγραφα',
+          icon: Icons.folder_rounded,
         ),
-      ),
+        InteractiveMenuItem(
+          label: 'Υπενθυμίσεις',
+          icon: Icons.notifications_rounded,
+        ),
+        InteractiveMenuItem(
+          label: 'Ρυθμίσεις',
+          icon: Icons.settings_rounded,
+        ),
+      ],
+      accentColor: const Color(0xFF3B82F6),
     );
   }
 
@@ -898,17 +845,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _NavItem {
-  const _NavItem({
-    required this.label,
-    required this.icon,
-    required this.selectedIcon,
-  });
 
-  final String label;
-  final IconData icon;
-  final IconData selectedIcon;
-}
 
 class _FullScreenPhoto extends StatelessWidget {
   const _FullScreenPhoto({required this.document});
