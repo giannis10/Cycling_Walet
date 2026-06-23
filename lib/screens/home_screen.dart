@@ -92,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (update != null && update.hasUpdate && mounted) {
       showDialog(
         context: context,
+        barrierDismissible: false, // Δεν κλείνει πατώντας γύρω γύρω
         builder: (ctx) => AlertDialog(
           title: const Text('Νέα Έκδοση'),
           content: Text(
@@ -106,8 +107,10 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () async {
                 Navigator.of(ctx).pop();
                 final url = Uri.parse(update.releaseUrl);
-                if (await canLaunchUrl(url)) {
+                try {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
+                } catch (e) {
+                  debugPrint('Could not launch update URL: $e');
                 }
               },
               child: const Text('Λήψη'),
@@ -594,12 +597,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (doc.expiresAt != null) {
       final replace = await showDialog<bool>(
         context: context,
+        barrierDismissible: false, // Δεν κλείνει πατώντας γύρω γύρω
         builder: (dialogContext) {
           final issue = extracted.issueDate;
           final body = issue != null
               ? 'Έκδοση: ${_formatDateForMessage(issue)}\n'
-                  'Νέα λήξη: ${_formatDateForMessage(newExpiry)}'
-              : 'Νέα λήξη: ${_formatDateForMessage(newExpiry)}';
+                  'Νέα λήξη: ${_formatDateForMessage(newExpiry)}\n\n'
+                  'Θα προστεθεί αυτόματα και στο Ημερολόγιό σας!'
+              : 'Νέα λήξη: ${_formatDateForMessage(newExpiry)}\n\n'
+                  'Θα προστεθεί αυτόματα και στο Ημερολόγιό σας!';
           return AlertDialog(
             title: const Text('Βρέθηκε ημερομηνία'),
             content: Text(body),
@@ -639,6 +645,12 @@ class _HomeScreenState extends State<HomeScreen> {
         content: Text(message),
         duration: const Duration(seconds: 4),
       ),
+    );
+
+    // Αυτόματη προσθήκη στο ημερολόγιο!
+    await CalendarService.instance.addExpiryEvent(
+      date: newExpiry,
+      title: doc.title,
     );
   }
 
