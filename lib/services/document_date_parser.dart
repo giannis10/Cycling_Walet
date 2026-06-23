@@ -17,8 +17,9 @@ class ExtractedDocumentDate {
 /// Χρησιμοποιεί ευρετικούς αλγορίθμους (heuristics) ως εναλλακτική λύση,
 /// δεδομένου ότι το on-device OCR δυσκολεύεται με ελληνικούς χαρακτήρες.
 class DocumentDateParser {
+  static const String _sep = r'(?:\s*[./\-,]\s*|\s+)';
   static const String _datePattern =
-      r'(\d{1,2})\s*[./\-]\s*(\d{1,2})\s*[./\-]\s*(\d{2,4})';
+      r'(?<!\d)(\d{1,2})' + _sep + r'(\d{1,2})' + _sep + r'(\d{2,4})(?!\d)';
 
   static final RegExp _dateCapture = RegExp(_datePattern);
 

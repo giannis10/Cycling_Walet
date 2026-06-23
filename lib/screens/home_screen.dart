@@ -546,7 +546,22 @@ class _HomeScreenState extends State<HomeScreen> {
       if (extracted != null) break;
     }
 
-    if (!mounted || extracted == null) return;
+    if (!mounted) return;
+    if (extracted == null) {
+      // TEMP DEBUG: Δείχνουμε το κείμενο που διάβασε το OCR!
+      final ocrText = await DateExtractionService.instance.getRawOcrText(
+        paths.first,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('OCR Error. Text read:\n$ocrText'),
+            duration: const Duration(seconds: 10),
+          ),
+        );
+      }
+      return;
+    }
     await _applyExtractedDate(index, extracted);
   }
 
