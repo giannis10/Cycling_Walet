@@ -34,7 +34,7 @@ jobs:
       - name: Extract Version
         id: extract_version
         run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1 | tr -d '\r')
           echo "APP_VERSION=v$VERSION" >> $GITHUB_ENV
 
       - name: Setup Keystore & key.properties
@@ -80,7 +80,7 @@ jobs:
       - name: Extract Version
         id: extract_version
         run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1 | tr -d '\r')
           echo "APP_VERSION=v$VERSION" >> $GITHUB_ENV
 
       - name: Build iOS (Release, no code-sign)
