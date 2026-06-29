@@ -37,8 +37,12 @@ class NotificationService {
     }
 
     tz.initializeTimeZones();
-    final timeZone = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(timeZone.identifier));
+    try {
+      final timeZone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timeZone.identifier));
+    } catch (e) {
+      debugPrint('Αποτυχία ρύθμισης timezone: $e — χρήση UTC.');
+    }
 
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
