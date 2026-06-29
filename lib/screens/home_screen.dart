@@ -16,6 +16,7 @@ import '../services/date_extraction_service.dart';
 import '../services/document_date_parser.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
+import '../services/widget_service.dart';
 import '../tour/app_feature_tour.dart';
 import '../utils/expiry_display.dart';
 import '../widgets/document_card.dart';
@@ -76,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _countdownBadge = AppPreferencesService.instance.countdownBadge;
     });
     await _syncReminders(syncedDocs);
+    await WidgetService.instance.updateWidget(syncedDocs);
     if (kIsWeb) {
       _startWebReminderTimer();
     }
@@ -211,6 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _save() async {
     await _storage.saveDocuments(_documents);
+    await WidgetService.instance.updateWidget(_documents);
   }
 
   int _notificationIdForDocument(UserDocument doc) =>
