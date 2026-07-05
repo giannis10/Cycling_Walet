@@ -56,6 +56,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="com.dexterous.flutterlocalnotifications.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
             
         <!-- Home Screen Widget: Full -->
         <receiver android:name=".WidgetFullProvider" android:exported="true" android:label="Cycling Wallet (Αναλυτικό)">

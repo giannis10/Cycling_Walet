@@ -78,7 +78,7 @@ class NotificationService {
         importance: Importance.high,
         priority: Priority.high,
         icon: 'ic_notification',
-        largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+        largeIcon: DrawableResourceAndroidBitmap('ic_launcher_drawable'),
       ),
       iOS: DarwinNotificationDetails(),
     );
@@ -115,7 +115,7 @@ class NotificationService {
         importance: Importance.high,
         priority: Priority.high,
         icon: 'ic_notification',
-        largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+        largeIcon: DrawableResourceAndroidBitmap('ic_launcher_drawable'),
       ),
       iOS: DarwinNotificationDetails(),
     );
@@ -167,8 +167,8 @@ class NotificationService {
         channelDescription: _channelDescription,
         importance: Importance.high,
         priority: Priority.high,
-        icon: '@drawable/ic_notification',
-        largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+        icon: 'ic_notification',
+        largeIcon: DrawableResourceAndroidBitmap('ic_launcher_drawable'),
       ),
       iOS: DarwinNotificationDetails(),
     );
