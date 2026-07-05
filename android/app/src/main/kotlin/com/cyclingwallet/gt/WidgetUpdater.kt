@@ -9,10 +9,8 @@ import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetPlugin
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.Calendar
 import java.util.Locale
-import java.util.TimeZone
-import kotlin.math.ceil
 
 object WidgetUpdater {
 
@@ -87,8 +85,22 @@ object WidgetUpdater {
                             val outFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                             expiryText = outFormat.format(date)
                             
-                            val diffInMillis = date.time - System.currentTimeMillis()
-                            val days = ceil(diffInMillis.toDouble() / (1000 * 60 * 60 * 24)).toLong()
+                            // Truncate both dates to midnight for accurate day count
+                            val expiryCal = Calendar.getInstance().apply {
+                                time = date
+                                set(Calendar.HOUR_OF_DAY, 0)
+                                set(Calendar.MINUTE, 0)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
+                            val todayCal = Calendar.getInstance().apply {
+                                set(Calendar.HOUR_OF_DAY, 0)
+                                set(Calendar.MINUTE, 0)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
+                            val diffInMillis = expiryCal.timeInMillis - todayCal.timeInMillis
+                            val days = (diffInMillis / (1000 * 60 * 60 * 24))
                             
                             if (days > 0) {
                                 countdownText = "$days μέρες"
@@ -123,18 +135,16 @@ object WidgetUpdater {
                     views.setTextColor(expiryId, color)
                 }
 
-                // Handle icon visibility and image
-                if (iconType == "uci") {
-                    views.setImageViewResource(iconId, R.drawable.ic_dot_uci)
+                // Handle icon: dynamic dot color based on expiry days
+                if (expiryStr.isNotEmpty() && color == Color.parseColor("#F87171")) {
+                    views.setImageViewResource(iconId, R.drawable.ic_dot_uci) // Red dot
                     views.setViewVisibility(iconId, View.VISIBLE)
-                } else if (iconType == "eop") {
-                    views.setImageViewResource(iconId, R.drawable.ic_dot_eop)
-                    views.setViewVisibility(iconId, View.VISIBLE)
-                } else if (iconType == "health") {
-                    views.setImageViewResource(iconId, R.drawable.ic_dot_health)
+                } else if (expiryStr.isNotEmpty() && color == Color.parseColor("#4ADE80")) {
+                    views.setImageViewResource(iconId, R.drawable.ic_dot_eop) // Green dot
                     views.setViewVisibility(iconId, View.VISIBLE)
                 } else {
-                    views.setViewVisibility(iconId, View.GONE)
+                    views.setImageViewResource(iconId, R.drawable.ic_dot_grey) // Grey dot
+                    views.setViewVisibility(iconId, View.VISIBLE)
                 }
 
                 // Handle column visibility

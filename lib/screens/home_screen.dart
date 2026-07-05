@@ -256,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
         date: reminderDate,
         expiry: expiry,
         title: 'Cycling Wallet',
-        body: 'Το έγγραφο ${doc.title} λήγει σε $_reminderDays ημέρες.',
+        body: 'Το έγγραφο ${doc.title} λήγει σε ${ExpiryDisplay.daysUntil(expiry)} μέρες.',
       );
     }
   }
@@ -297,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final ok = await NotificationService.instance.showImmediateNotification(
         title: 'Cycling Wallet',
-        body: 'Το έγγραφο ${doc.title} λήγει σε $_reminderDays ημέρες.',
+        body: 'Το έγγραφο ${doc.title} λήγει σε ${ExpiryDisplay.daysUntil(expiry)} μέρες.',
       );
       if (!ok) continue;
 
@@ -317,11 +317,18 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     final doc = _documents[index];
     final now = DateTime.now();
+    final firstDate = DateTime(now.year - 1);
+    final lastDate = DateTime(now.year + 10);
+    // Clamp initialDate within the valid range so the picker always appears,
+    // even when the existing expiresAt falls outside [firstDate, lastDate].
+    var initial = doc.expiresAt ?? now;
+    if (initial.isBefore(firstDate)) initial = firstDate;
+    if (initial.isAfter(lastDate)) initial = lastDate;
     final picked = await showDatePicker(
       context: context,
-      initialDate: doc.expiresAt ?? now,
-      firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 10),
+      initialDate: initial,
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (picked == null) return;
 
