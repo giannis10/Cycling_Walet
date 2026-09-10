@@ -45,3 +45,6 @@ app.*.map.json
 /android/app/release
 /android/key.properties
 /android/app/upload-keystore.jks
+# Keystore Backups
+keystore_base64.txt
+android_keystore_backup_info.txt

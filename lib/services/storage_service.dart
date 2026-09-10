@@ -52,7 +52,8 @@ class StorageService {
     final imagesDir = await _ensureImagesDirectory();
     final extension = p.extension(sourcePath);
     final safeExtension = extension.isNotEmpty ? extension : '.jpg';
-    final fileName = '${storageKey}_$slot$safeExtension';
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final fileName = '${storageKey}_${slot}_$timestamp$safeExtension';
     final destPath = p.join(imagesDir.path, fileName);
 
     if (!p.equals(sourcePath, destPath)) {
