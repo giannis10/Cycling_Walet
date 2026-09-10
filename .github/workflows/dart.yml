@@ -39,13 +39,15 @@ jobs:
 
       - name: Setup Keystore & key.properties
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           echo "$KEYSTORE_BASE64" | tr -d '\n\r ' | base64 --decode > android/app/upload-keystore.jks
-          echo "storePassword=$KEY_PASSWORD" > android/key.properties
+          echo "storePassword=$KEYSTORE_PASSWORD" > android/key.properties
           echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
-          echo "keyAlias=upload" >> android/key.properties
+          echo "keyAlias=$KEY_ALIAS" >> android/key.properties
           echo "storeFile=../app/upload-keystore.jks" >> android/key.properties
 
       - name: Build APK (Release)
